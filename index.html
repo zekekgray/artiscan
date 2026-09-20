@@ -1,0 +1,669 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover, user-scalable=no">
+<meta name="theme-color" content="#ECE4D6">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<title>ArtiPlay Scan</title>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jsQR/1.4.0/jsQR.min.js"></script>
+<style>
+/* ═══════════════════════════════════════════════════════════
+   ARTIPLAY SCAN — single-file app
+   Card face + key + glass pills taken from the ATH•NA vCard.
+   Ctrl+F any "=== START:" marker to jump between blocks.
+   ═══════════════════════════════════════════════════════════ */
+
+/* === START: CSS TOKENS + BASE === */
+:root{
+  --cream:#ECE4D6; --pill:#F3EDE4; --ink:#1c1c1e; --gold:#E8CC7A; --gold-d:#C9A227; --card:#2F343A;
+  --glass:rgba(255,255,255,0.72); --sub:rgba(60,60,67,0.55); --faint:rgba(60,60,67,0.35); --line:rgba(0,0,0,0.07);
+  --green:#34C759; --green-d:#1c8a3e; --orange:#FF9F0A; --orange-d:#a06000; --red:#FF453A; --red-d:#c4281e; --blue:#4A9DE0;
+  --font:-apple-system,'SF Pro Text','Helvetica Neue',sans-serif; --font-d:-apple-system,'SF Pro Display','Helvetica Neue',sans-serif;
+  --ease:cubic-bezier(0.16,1,0.3,1); --spring:cubic-bezier(0.34,1.56,0.64,1);
+}
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}
+html,body{background:var(--cream);font-family:var(--font);color:var(--ink);height:100%;overflow:hidden;overscroll-behavior:none}
+body{display:flex;align-items:center;justify-content:center}
+button{font-family:inherit;cursor:pointer;border:none;background:none;color:inherit}
+input,textarea,select{font-family:inherit}
+/* === END: CSS TOKENS + BASE === */
+
+/* === START: CSS CARD SCENE === */
+#wrap{position:relative;flex-shrink:0}
+#fit{position:absolute;top:0;left:0;width:340px;height:580px;transform-origin:top left}
+.scene{perspective:1200px;width:340px;height:580px;position:relative}
+.scene::before{content:'';position:absolute;width:420px;height:680px;left:50%;top:50%;transform:translate(-50%,-50%);
+  background:radial-gradient(ellipse at center,rgba(232,204,122,.14) 0%,transparent 70%);filter:blur(50px);pointer-events:none;animation:amb 5s ease-in-out infinite}
+@keyframes amb{0%,100%{opacity:.5}50%{opacity:.9}}
+.flip{position:relative;width:100%;height:100%;transform-style:preserve-3d;cursor:pointer;
+  transition:transform .9s cubic-bezier(0.23,1,0.32,1);animation:reveal 1.2s cubic-bezier(0.23,1,0.32,1) both}
+.flip.flipped{transform:rotateY(180deg)}
+@keyframes reveal{0%{opacity:0;transform:translateY(40px) rotateX(10deg)}100%{opacity:1;transform:none}}
+.face{position:absolute;inset:0;border-radius:24px;overflow:hidden;backface-visibility:hidden;-webkit-backface-visibility:hidden;
+  background-color:var(--card);
+  background-image:repeating-linear-gradient(45deg,rgba(255,255,255,.012) 0 1px,transparent 1px 7px),repeating-linear-gradient(-45deg,rgba(255,255,255,.012) 0 1px,transparent 1px 7px);
+  box-shadow:0 0 0 .5px rgba(255,255,255,.08),0 60px 120px rgba(0,0,0,.6),0 24px 60px rgba(0,0,0,.45),0 8px 24px rgba(0,0,0,.35),inset 0 1px 0 rgba(255,255,255,.09)}
+.face::after{content:'';position:absolute;inset:0;border-radius:24px;border:1px solid rgba(255,255,255,.15);pointer-events:none;z-index:100}
+.back{transform:rotateY(180deg)}
+.tline,.bline{position:absolute;left:10%;right:10%;height:1px;background:linear-gradient(90deg,transparent,#fff 30%,#fff 70%,transparent);z-index:10}
+.tline{top:0;opacity:.6}.bline{bottom:0;opacity:.3}
+.face>svg{position:absolute;inset:0}
+/* === END: CSS CARD SCENE === */
+
+/* === START: CSS GLASS PILL (session / result) === */
+.gpill{position:absolute;left:calc(4.35/340*100%);width:calc(332/340*100%);height:calc(71.3/580*100%);top:calc(3.44/580*100%);
+  border-radius:24px;background:var(--pill);border:.6px solid rgba(0,0,0,.08);display:flex;flex-direction:column;align-items:center;
+  justify-content:center;gap:6px;z-index:15;overflow:hidden;cursor:pointer;transition:transform .12s}
+.gpill:active{transform:scale(.985)}
+.pill-name{font-size:12.5px;font-weight:600;letter-spacing:3px;color:var(--ink);line-height:1.2;width:100%;text-align:center;white-space:nowrap;padding:0 34px}
+.pill-pos{font-size:8.98px;font-weight:700;letter-spacing:.14em;color:var(--ink);opacity:.7;line-height:1;text-transform:uppercase;white-space:nowrap}
+.pill-dot{position:absolute;left:18px;top:50%;width:9px;height:9px;margin-top:-4.5px;border-radius:50%;background:#8E8E93;transition:background .2s,box-shadow .2s}
+.pill-dot.g{background:var(--green);box-shadow:0 0 0 4px rgba(52,199,89,.18)}
+.pill-dot.o{background:var(--orange);box-shadow:0 0 0 4px rgba(255,159,10,.2)}
+.pill-dot.b{background:var(--blue);box-shadow:0 0 0 4px rgba(74,157,224,.2)}
+.pill-dot.r{background:var(--red);box-shadow:0 0 0 4px rgba(255,69,58,.18)}
+.pill-chev{position:absolute;right:18px;top:50%;margin-top:-5px;opacity:.35}
+/* === END: CSS GLASS PILL === */
+
+/* === START: CSS SCAN CIRCLE + CAPTION + STATS === */
+#scanCircle{position:absolute;left:80px;top:200px;width:180px;height:180px;border-radius:50%;overflow:hidden;background:#0b0b0b;z-index:20;cursor:pointer}
+#scanCircle video{position:absolute;inset:0;width:100%;height:100%;object-fit:cover}
+.idle{position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:9px;background:#0b0b0b;
+  color:rgba(232,204,122,.9);font-size:9.5px;font-weight:700;letter-spacing:.2em;transition:opacity .3s}
+.idle.hide{opacity:0;pointer-events:none}
+.caption{position:absolute;top:92px;left:0;right:0;text-align:center;z-index:5;pointer-events:none}
+.cap-1{font-size:10.5px;font-weight:600;letter-spacing:.22em;color:#d0d0d0;display:inline-flex;align-items:center;gap:8px}
+.cap-1 i{width:6px;height:6px;border-radius:50%;background:var(--green);animation:pulse 1.6s ease-in-out infinite}
+.cap-1.off i{background:#8E8E93;animation:none}
+@keyframes pulse{0%,100%{opacity:1}50%{opacity:.3}}
+.cap-2{font-size:10px;letter-spacing:.08em;color:rgba(208,208,208,.45);margin-top:7px}
+.stats{position:absolute;top:414px;left:28px;right:28px;z-index:12;cursor:pointer}
+.st-top{display:flex;align-items:baseline;justify-content:space-between}
+.st-big b{font-family:var(--font-d);font-size:30px;font-weight:700;color:#fff;letter-spacing:-.01em}
+.st-big span{font-size:15px;color:rgba(255,255,255,.4);margin-left:4px}
+.st-pct{font-size:12px;font-weight:700;letter-spacing:.12em;color:var(--gold)}
+.st-bar{height:2px;background:rgba(255,255,255,.12);border-radius:1px;margin:7px 0 9px;overflow:hidden}
+.st-bar i{display:block;height:100%;width:0;background:linear-gradient(90deg,#E8CC7A,#C9A227);transition:width .5s ease}
+.st-row{display:flex;justify-content:space-between;font-size:10.5px;color:rgba(208,208,208,.6);letter-spacing:.03em}
+.st-row div{display:flex;align-items:center;gap:5px}
+.st-row b{color:#fff;font-size:12px}
+.st-row i{width:6px;height:6px;border-radius:50%}
+.dg{background:var(--green)}.do{background:var(--orange)}.dn{background:#8E8E93}
+/* === END: CSS SCAN CIRCLE + CAPTION + STATS === */
+
+/* === START: CSS CARD BACK (scan log) === */
+.bk-head{position:absolute;top:26px;left:26px;right:26px;z-index:5}
+.bk-title{font-size:11px;font-weight:700;letter-spacing:.24em;color:var(--gold)}
+.bk-sub{font-size:12.5px;color:#d0d0d0;margin-top:5px;letter-spacing:.04em}
+.bk-list{position:absolute;top:82px;left:20px;right:20px;bottom:74px;z-index:5;overflow-y:auto;display:flex;flex-direction:column;gap:6px}
+.bk-list::-webkit-scrollbar{display:none}
+.bk-row{display:flex;align-items:center;gap:10px;background:rgba(255,255,255,.07);border:.6px solid rgba(255,255,255,.08);border-radius:14px;padding:9px 12px}
+.bk-row .d{width:8px;height:8px;border-radius:50%;flex-shrink:0}
+.bk-row .n{flex:1;min-width:0;font-size:13px;font-weight:600;color:#fff;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.bk-row .t{font-size:11px;color:rgba(208,208,208,.6);white-space:nowrap}
+.bk-empty{margin:auto;text-align:center;font-size:12px;line-height:1.7;color:rgba(208,208,208,.45);letter-spacing:.04em}
+.bk-foot{position:absolute;left:26px;right:26px;bottom:22px;z-index:5}
+.bk-div{height:1px;background:linear-gradient(90deg,transparent,rgba(208,208,208,.4),transparent);margin-bottom:14px}
+.bk-id{display:flex;justify-content:space-between;align-items:flex-end;font-size:11px;font-weight:500;letter-spacing:.08em;color:#d0d0d0;text-transform:uppercase}
+/* === END: CSS CARD BACK === */
+
+/* === START: CSS SHEETS + ROWS === */
+.overlay{position:fixed;inset:0;background:rgba(0,0,0,.5);backdrop-filter:blur(10px);-webkit-backdrop-filter:blur(10px);display:flex;align-items:flex-end;
+  justify-content:center;z-index:600;opacity:0;visibility:hidden;transition:opacity .28s}
+.overlay.show{opacity:1;visibility:visible}
+.sheet{background:var(--cream);border-radius:22px 22px 0 0;width:100%;max-width:480px;max-height:90dvh;overflow-y:auto;-webkit-overflow-scrolling:touch;
+  padding:12px 20px max(26px,env(safe-area-inset-bottom));transform:translateY(100%);transition:transform .34s var(--ease)}
+.overlay.show .sheet{transform:none}
+.handle{width:36px;height:4px;background:rgba(0,0,0,.15);border-radius:2px;margin:0 auto 16px}
+.sheet h2{font-family:var(--font-d);font-size:21px;font-weight:700;margin-bottom:4px}
+.sheet .sub{font-size:13px;color:var(--sub);margin-bottom:14px;line-height:1.5}
+.lbl{font-size:11px;font-weight:700;letter-spacing:.06em;text-transform:uppercase;color:var(--faint);margin:16px 2px 8px}
+.group{background:var(--glass);border-radius:16px;overflow:hidden}
+.row{display:flex;align-items:center;gap:12px;padding:12px 14px;position:relative}
+.row+.row::before{content:'';position:absolute;top:0;left:60px;right:0;height:1px;background:var(--line)}
+.row.tap{cursor:pointer}.row.tap:active{background:rgba(0,0,0,.04)}
+.av{width:36px;height:36px;border-radius:50%;display:flex;align-items:center;justify-content:center;color:#fff;font-size:13px;font-weight:700;flex-shrink:0}
+.rt{flex:1;min-width:0}.rt b{display:block;font-size:14.5px;font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.rt span{font-size:12px;color:var(--sub)}
+.tag{font-size:10.5px;font-weight:700;padding:4px 10px;border-radius:20px;flex-shrink:0;white-space:nowrap}
+.tag.present{background:rgba(52,199,89,.13);color:var(--green-d)}.tag.late{background:rgba(255,159,10,.14);color:var(--orange-d)}
+.tag.unconfirmed{background:rgba(60,60,67,.08);color:var(--sub)}.tag.absent{background:rgba(255,69,58,.1);color:var(--red-d)}
+.tag.excused{background:rgba(74,157,224,.13);color:#2b6ea3}.tag.open{background:rgba(52,199,89,.13);color:var(--green-d)}.tag.closed{background:rgba(60,60,67,.08);color:var(--sub)}
+.filters{display:flex;gap:7px;overflow-x:auto;scrollbar-width:none;margin-bottom:12px}.filters::-webkit-scrollbar{display:none}
+.chip{flex-shrink:0;background:rgba(255,255,255,.6);border:1px solid rgba(0,0,0,.08);border-radius:20px;padding:7px 14px;font-size:13px;font-weight:600;color:var(--sub)}
+.chip.active{background:var(--ink);color:var(--cream);border-color:var(--ink)}
+.stack{display:flex;flex-direction:column;gap:8px;margin-top:14px}
+.b-dark,.b-light,.b-gold{width:100%;padding:14px;border-radius:14px;font-size:14.5px;font-weight:700;transition:transform .12s,opacity .12s}
+.b-dark{background:var(--ink);color:var(--cream)}.b-light{background:rgba(0,0,0,.06);color:var(--ink);font-weight:600}
+.b-gold{background:linear-gradient(135deg,#E8CC7A,#C9A84C);color:var(--ink)}.b-danger{background:rgba(255,69,58,.08);color:var(--red)}
+.b-dark:active,.b-light:active,.b-gold:active{transform:scale(.97);opacity:.85}
+.input{width:100%;background:var(--glass);border:1px solid rgba(0,0,0,.08);border-radius:12px;padding:13px 14px;font-size:16px;color:var(--ink);outline:none}
+.grid2{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+textarea.input{min-height:120px;resize:vertical;line-height:1.5;font-size:14px}
+.hero{background:var(--glass);border-radius:18px;padding:18px;margin-bottom:10px}
+.hero b{font-family:var(--font-d);font-size:40px;font-weight:700;letter-spacing:-.02em}.hero b small{font-size:20px;color:var(--faint);font-weight:600}
+.hero p{font-size:13px;color:var(--sub);margin-top:2px}
+.bar{height:6px;background:rgba(0,0,0,.08);border-radius:3px;overflow:hidden;margin-top:12px}.bar i{display:block;height:100%;background:linear-gradient(90deg,#E8CC7A,#C9A227);border-radius:3px}
+.kv{display:flex;justify-content:space-between;padding:11px 16px;font-size:14px}.kv+.kv{border-top:1px solid var(--line)}.kv span:first-child{color:var(--sub)}.kv span:last-child{font-weight:600}
+.names{padding:4px 16px 12px;font-size:13.5px;line-height:1.7}
+.empty{padding:26px 16px;text-align:center;font-size:13.5px;color:var(--faint);line-height:1.6}
+.toast{position:fixed;bottom:max(24px,env(safe-area-inset-bottom));left:50%;transform:translateX(-50%) translateY(20px);background:rgba(28,28,30,.92);
+  backdrop-filter:blur(20px);-webkit-backdrop-filter:blur(20px);border:.8px solid rgba(255,255,255,.1);color:#fff;font-size:13px;font-weight:500;
+  padding:12px 20px;border-radius:14px;opacity:0;pointer-events:none;transition:all .3s var(--ease);z-index:900;max-width:92vw;text-align:center}
+.toast.show{opacity:1;transform:translateX(-50%)}.toast.success{color:var(--green)}.toast.error{color:var(--red)}
+/* === END: CSS SHEETS + ROWS === */
+
+/* === START: CSS PLAYER QR CARD + PRINT === */
+.pcard{background:var(--card);border-radius:24px;padding:20px 20px 16px;color:#fff;text-align:center;
+  background-image:repeating-linear-gradient(45deg,rgba(255,255,255,.012) 0 1px,transparent 1px 7px)}
+.pcard .club{font-size:10px;font-weight:700;letter-spacing:.22em;color:rgba(232,204,122,.85);margin-bottom:12px}
+.pcard .qr{width:180px;height:180px;background:#fff;border-radius:50%;margin:0 auto 14px;padding:22px;display:flex;align-items:center;justify-content:center;
+  box-shadow:0 0 0 6px rgba(255,255,255,.08)}
+.pcard .qr img,.pcard .qr canvas{width:100%!important;height:100%!important}
+.pcard .pn{font-family:var(--font-d);font-size:18px;font-weight:700;letter-spacing:.06em;text-transform:uppercase}
+.pcard .pm{font-size:12px;color:rgba(255,255,255,.6);margin-top:3px}
+.pcard .pi{font-size:11.5px;font-weight:600;letter-spacing:.14em;color:#d0d0d0;margin-top:12px;padding-top:10px;border-top:1px solid rgba(208,208,208,.25)}
+#printAll{display:none}
+@media print{
+  html,body{overflow:visible;height:auto;background:#fff}
+  body>*:not(#printAll):not(#printOne){display:none!important}
+  #printAll,#printOne{display:grid!important;grid-template-columns:repeat(2,1fr);gap:14px;padding:12px;background:#fff}
+  #printOne{grid-template-columns:1fr;max-width:320px;margin:0 auto}
+  .pcard{break-inside:avoid;-webkit-print-color-adjust:exact;print-color-adjust:exact}
+}
+/* === END: CSS PLAYER QR CARD + PRINT === */
+@media (prefers-reduced-motion:reduce){*{animation:none!important;transition-duration:.01ms!important}}
+</style>
+</head>
+<body>
+
+<!-- === START: HTML CARD === -->
+<div id="wrap"><div id="fit"><div class="scene">
+<div class="flip" id="flip" onclick="flipCard()">
+
+  <!-- FRONT -->
+  <div class="face front">
+    <div class="tline"></div><div class="bline"></div>
+
+    <div class="gpill" id="gpill" onclick="event.stopPropagation();openSessions()">
+      <i class="pill-dot" id="pillDot"></i>
+      <div class="pill-name" id="pillName">—</div>
+      <div class="pill-pos" id="pillPos">—</div>
+      <svg class="pill-chev" width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="#1c1c1e" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"/></svg>
+    </div>
+
+    <svg width="340" height="580" viewBox="0 0 340 580" fill="none">
+      <defs>
+        <linearGradient id="gGold" x1="0" y1="0" x2="0" y2="1"><stop offset="0%" stop-color="#d9d7d2"/><stop offset="12%" stop-color="#eae8e3"/><stop offset="28%" stop-color="#b7b4ad"/><stop offset="45%" stop-color="#e2dfd9"/><stop offset="62%" stop-color="#a19e97"/><stop offset="78%" stop-color="#cac7c0"/><stop offset="100%" stop-color="#b0ada6"/></linearGradient>
+        <linearGradient id="gGoldH" x1="0" y1="0" x2="1" y2="0"><stop offset="0%" stop-color="#b3b0a9"/><stop offset="18%" stop-color="#e6e3dd"/><stop offset="35%" stop-color="#cac7c0"/><stop offset="50%" stop-color="#e2dfd9"/><stop offset="65%" stop-color="#bcb9b2"/><stop offset="82%" stop-color="#d6d3cc"/><stop offset="100%" stop-color="#a19e97"/></linearGradient>
+        <linearGradient id="gBow" x1="0" y1="0" x2="1" y2="1"><stop offset="0%" stop-color="#e6e3dd" stop-opacity=".8"/><stop offset="30%" stop-color="#b7b4ad" stop-opacity=".45"/><stop offset="60%" stop-color="#3a3835" stop-opacity=".55"/><stop offset="100%" stop-color="#7a776f" stop-opacity=".28"/></linearGradient>
+        <radialGradient id="gBowSpec" cx="35%" cy="30%" r="60%"><stop offset="0%" stop-color="#eae7e1" stop-opacity=".45"/><stop offset="40%" stop-color="#eae7e1" stop-opacity=".08"/><stop offset="100%" stop-color="#000" stop-opacity="0"/></radialGradient>
+        <filter id="glow" x="-40%" y="-40%" width="180%" height="180%"><feGaussianBlur stdDeviation="3" result="b"/><feMerge><feMergeNode in="b"/><feMergeNode in="SourceGraphic"/></feMerge></filter>
+      </defs>
+      <g id="dust"></g>
+      <!-- KEY BOW — same transform chain as the ATH•NA card; centre (170,290), outer R≈116, inner R≈95 -->
+      <g transform="translate(170,102.57) scale(0.7663) translate(-88, 24.6)"><g transform="translate(88,220) scale(1.725) translate(-88,-220)">
+        <circle cx="88" cy="220" r="88" fill="url(#gGold)" stroke="url(#gGoldH)" stroke-width="2"/>
+        <circle cx="88" cy="220" r="88" fill="url(#gBow)"/><circle cx="88" cy="220" r="88" fill="url(#gBowSpec)"/>
+        <circle cx="88" cy="220" r="72" fill="#0b0b0b" stroke="rgba(180,180,180,.15)" stroke-width="1"/>
+      </g></g>
+      <circle id="ring" cx="170" cy="290" r="93" stroke="rgba(232,204,122,.55)" stroke-width="2.5" filter="url(#glow)" style="transition:stroke .2s"/>
+
+      <!-- BOTTOM PILL 1 -->
+      <g>
+        <rect x="27.52" y="502.64" width="193.2" height="53.13" rx="26.57" fill="#F3EDE4"/>
+        <rect x="27.52" y="502.64" width="193.2" height="53.13" rx="26.57" stroke="rgba(0,0,0,.08)" stroke-width=".6"/>
+        <g transform="translate(41.53,519.06) scale(0.845)" stroke="#1c1c1e" stroke-width="2.17" fill="none" stroke-linecap="round" stroke-linejoin="round"><path d="M4 9h16M4 15h16M10 3 8 21M16 3l-2 18"/></g>
+        <rect x="27.52" y="502.64" width="48.3" height="53.13" fill="transparent" style="cursor:pointer" onclick="event.stopPropagation();openManual()"/>
+        <g transform="translate(89.83,519.06) scale(0.845)" stroke="#1c1c1e" stroke-width="2.17" fill="none" stroke-linecap="round" stroke-linejoin="round"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M22 21v-2a4 4 0 0 0-3-3.87M16 3.13a4 4 0 0 1 0 7.75"/></g>
+        <rect x="75.82" y="502.64" width="48.3" height="53.13" fill="transparent" style="cursor:pointer" onclick="event.stopPropagation();openRoster()"/>
+        <g transform="translate(138.13,519.06) scale(0.845)" stroke="#1c1c1e" stroke-width="2.17" fill="none" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><path d="M8 13h8M8 17h5"/></g>
+        <rect x="124.12" y="502.64" width="48.3" height="53.13" fill="transparent" style="cursor:pointer" onclick="event.stopPropagation();openReport()"/>
+        <g transform="translate(186.43,519.06) scale(0.845)" stroke="#1c1c1e" stroke-width="2.17" fill="none" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="5" width="20" height="14" rx="2.5"/><circle cx="8.5" cy="12" r="2"/><path d="M13 10h5M13 14h4"/></g>
+        <rect x="172.42" y="502.64" width="48.3" height="53.13" fill="transparent" style="cursor:pointer" onclick="event.stopPropagation();openCards()"/>
+      </g>
+      <!-- BOTTOM PILL 2 -->
+      <g>
+        <rect x="235.21" y="502.64" width="77.28" height="53.13" rx="26.57" fill="#F3EDE4"/>
+        <rect x="235.21" y="502.64" width="77.28" height="53.13" rx="26.57" stroke="rgba(0,0,0,.08)" stroke-width=".6"/>
+        <g transform="translate(244.39,519.06) scale(0.845)" stroke="#1c1c1e" stroke-width="2.17" fill="none" stroke-linecap="round" stroke-linejoin="round"><path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"/><circle cx="12" cy="13" r="4"/></g>
+        <circle id="camDot" cx="262" cy="524" r="3.4" fill="#8E8E93" stroke="#F3EDE4" stroke-width="1.5"/>
+        <rect x="235.21" y="502.64" width="38.64" height="53.13" fill="transparent" style="cursor:pointer" onclick="event.stopPropagation();toggleCamera()"/>
+        <g transform="translate(283.03,519.06) scale(0.845)" stroke="#1c1c1e" stroke-width="2.17" fill="none" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="5" width="18" height="16" rx="2"/><path d="M8 3v4M16 3v4M3 10h18"/></g>
+        <rect x="273.85" y="502.64" width="38.64" height="53.13" fill="transparent" style="cursor:pointer" onclick="event.stopPropagation();openSessions()"/>
+      </g>
+    </svg>
+
+    <div class="caption"><div class="cap-1 off" id="cap1"><i></i><span id="cap1t">CAMERA OFF</span></div><div class="cap-2" id="cap2">Tap the key to start scanning</div></div>
+
+    <div id="scanCircle" onclick="event.stopPropagation();startCamera()">
+      <video id="video" playsinline muted></video>
+      <div class="idle" id="idle">
+        <svg width="34" height="34" viewBox="0 0 24 24" fill="none" stroke="#E8CC7A" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M3 7V5a2 2 0 0 1 2-2h2M17 3h2a2 2 0 0 1 2 2v2M21 17v2a2 2 0 0 1-2 2h-2M7 21H5a2 2 0 0 1-2-2v-2"/><rect x="8" y="8" width="8" height="8" rx="1"/></svg>
+        TAP TO SCAN
+      </div>
+    </div>
+    <canvas id="canvas" hidden></canvas>
+
+    <div class="stats" id="stats" onclick="event.stopPropagation();openRoster()">
+      <div class="st-top"><div class="st-big"><b id="stAtt">0</b><span id="stTot">/ 0</span></div><div class="st-pct" id="stPct">0%</div></div>
+      <div class="st-bar"><i id="stBar"></i></div>
+      <div class="st-row"><div><i class="dg"></i><b id="stP">0</b> Present</div><div><i class="do"></i><b id="stL">0</b> Late</div><div><i class="dn"></i><b id="stU">0</b> Unconfirmed</div></div>
+    </div>
+  </div>
+
+  <!-- BACK -->
+  <div class="face back">
+    <div class="tline"></div><div class="bline"></div>
+    <svg width="340" height="580" viewBox="0 0 340 580" fill="none" style="opacity:.55">
+      <defs><radialGradient id="bFade" cx="50%" cy="50%" r="50%"><stop offset="0%" stop-color="#fff" stop-opacity="1"/><stop offset="55%" stop-color="#fff" stop-opacity=".8"/><stop offset="80%" stop-color="#fff" stop-opacity=".15"/><stop offset="100%" stop-color="#fff" stop-opacity="0"/></radialGradient>
+      <mask id="bMask"><rect width="340" height="580" fill="url(#bFade)"/></mask></defs>
+      <g id="flower" mask="url(#bMask)" stroke="#d0d0d0" stroke-width=".7" fill="none" opacity=".35"></g>
+    </svg>
+    <div class="bk-head"><div class="bk-title">SCAN LOG</div><div class="bk-sub" id="bkSub">—</div></div>
+    <div class="bk-list" id="bkList"></div>
+    <div class="bk-foot"><div class="bk-div"></div><div class="bk-id"><span id="bkId">ARTIPLAY SCAN</span>
+      <svg width="21" height="21" viewBox="0 0 24 24" fill="none" stroke="#d0d0d0" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" opacity=".85"><path d="M3 7V5a2 2 0 0 1 2-2h2M17 3h2a2 2 0 0 1 2 2v2M21 17v2a2 2 0 0 1-2 2h-2M7 21H5a2 2 0 0 1-2-2v-2"/><path d="M7 12h10"/></svg></div></div>
+  </div>
+
+</div></div></div></div>
+<!-- === END: HTML CARD === -->
+
+<div class="overlay" id="overlay" onclick="if(event.target===this)closeSheet()"><div class="sheet"><div class="handle"></div><div id="sheetBody"></div></div></div>
+<div class="toast" id="toast"></div>
+<div id="printAll"></div>
+
+<script>
+/* === START: JS STORE === */
+const KEY = 'artiplay-scan-v1', PREFIX = 'LVTFA-', RESULT_MS = 1700;
+const $ = id => document.getElementById(id);
+let DB = load();
+function load(){
+  try{ const d = JSON.parse(localStorage.getItem(KEY)); if (d && d.players) return d; }catch(e){}
+  const d = { players:[], sessions:[], attendance:[], schedules:[], currentSessionId:null, seq:0 };
+  [['Juan Dela Cruz','Midfielder'],['Pedro Santos','Defender'],['Mark Reyes','Striker'],['Luis Garcia','Goalkeeper'],['Andre Lim','Winger'],['Migo Tan','Defender']]
+    .forEach(([n, p]) => addPlayerTo(d, n, 'U14', p, true));
+  return d;
+}
+function save(){ try{ localStorage.setItem(KEY, JSON.stringify(DB)); }catch(e){ toast('Storage full or blocked', 'error'); } }
+function newToken(){ const a = new Uint8Array(7); crypto.getRandomValues(a); return Array.from(a, b => b.toString(36).toUpperCase().padStart(2,'0')).join('').slice(0, 10); }
+function addPlayerTo(d, name, team, pos, demo){
+  d.seq++; d.players.push({ id:PREFIX + String(d.seq).padStart(4,'0'), name, team, position:pos || 'Player', token:newToken(), active:true, demo:!!demo });
+}
+/* === END: JS STORE === */
+
+/* === START: JS HELPERS === */
+function esc(s){ return String(s == null ? '' : s).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c])); }
+function initials(n){ const p = String(n).trim().split(/\s+/); return ((p[0]||'?')[0] + (p.length > 1 ? p[p.length-1][0] : '')).toUpperCase(); }
+function colorFor(n){ const c = ['#3B6FB6','#D2691E','#A8326B','#27AE60','#8E44AD','#C0392B','#4A9DE0','#C9A227']; let h = 0; for (const ch of String(n)) h = (h*31 + ch.charCodeAt(0)) | 0; return c[Math.abs(h) % c.length]; }
+function pad(n){ return String(n).padStart(2,'0'); }
+function todayStr(d = new Date()){ return d.getFullYear() + '-' + pad(d.getMonth()+1) + '-' + pad(d.getDate()); }
+function hhmm(d = new Date()){ return pad(d.getHours()) + ':' + pad(d.getMinutes()); }
+function fmt12(t){ if (!t) return ''; const [h,m] = t.split(':').map(Number); return (h%12 === 0 ? 12 : h%12) + ':' + pad(m) + ' ' + (h >= 12 ? 'PM' : 'AM'); }
+function fmtTs(ts){ const d = new Date(ts); return fmt12(hhmm(d)); }
+function haptic(k){ if (navigator.vibrate) navigator.vibrate(k === 'err' ? [12,8,12] : k === 'ok' ? [10,6,20] : 8); }
+let actx = null;
+function beep(k){
+  try{ actx = actx || new (window.AudioContext || window.webkitAudioContext)();
+    const o = actx.createOscillator(), g = actx.createGain(); o.frequency.value = k === 'err' ? 190 : k === 'late' ? 560 : 900;
+    g.gain.setValueAtTime(.0001, actx.currentTime); g.gain.exponentialRampToValueAtTime(.18, actx.currentTime + .01); g.gain.exponentialRampToValueAtTime(.0001, actx.currentTime + .16);
+    o.connect(g); g.connect(actx.destination); o.start(); o.stop(actx.currentTime + .18); }catch(e){}
+}
+let tt = null;
+function toast(m, t){ const e = $('toast'); e.textContent = m; e.className = 'toast ' + (t||'') + ' show'; clearTimeout(tt); tt = setTimeout(() => e.className = 'toast', 2600); }
+function openSheet(h){ $('sheetBody').innerHTML = h; $('overlay').classList.add('show'); }
+function closeSheet(){ $('overlay').classList.remove('show'); }
+function download(name, text, type){ const a = document.createElement('a'); a.href = URL.createObjectURL(new Blob([text], { type:type || 'text/csv' })); a.download = name; document.body.appendChild(a); a.click(); setTimeout(() => { URL.revokeObjectURL(a.href); a.remove(); }, 800); }
+function copy(t){ (navigator.clipboard ? navigator.clipboard.writeText(t) : Promise.reject()).then(() => toast('Copied', 'success')).catch(() => { const a = document.createElement('textarea'); a.value = t; document.body.appendChild(a); a.select(); try{ document.execCommand('copy'); toast('Copied', 'success'); }catch(e){ toast('Copy failed', 'error'); } a.remove(); }); }
+/* === END: JS HELPERS === */
+
+/* === START: JS SESSIONS + ATTENDANCE LOGIC === */
+const DAYS = ['Sunday','Monday','Tuesday','Wednesday','Thursday','Friday','Saturday'];
+function curSession(){ return DB.sessions.find(s => s.id === DB.currentSessionId) || null; }
+function makeSession(team, start, grace, coach, location, date){
+  const id = 'TRN-' + (date || todayStr()) + '-' + team + '-' + start.replace(':','');
+  let s = DB.sessions.find(x => x.id === id);
+  if (!s){ s = { id, date:date || todayStr(), team, start, grace:Number(grace) || 10, coach:coach || '', location:location || '', status:'Open' }; DB.sessions.push(s); }
+  return s;
+}
+function ensureToday(){
+  const day = DAYS[new Date().getDay()];
+  DB.schedules.filter(x => x.day === day).forEach(x => makeSession(x.team, x.start, x.grace, x.coach, x.location));
+  if (!DB.sessions.length){ const s = makeSession('U14', hhmm(), 10, 'Coach Mark', 'Livity Field'); DB.currentSessionId = s.id; }
+  const cur = curSession();
+  if (!cur || (cur.date !== todayStr() && DB.sessions.some(s => s.date === todayStr()))){
+    const t = DB.sessions.filter(s => s.date === todayStr()).sort((a,b) => a.start.localeCompare(b.start));
+    DB.currentSessionId = (t.find(s => s.status === 'Open') || t[0] || DB.sessions[DB.sessions.length-1] || {}).id || null;
+  }
+  save();
+}
+function startMs(s){ return new Date(s.date + 'T' + s.start + ':00').getTime(); }
+function attOf(sid, pid){ return DB.attendance.find(a => a.sessionId === sid && a.playerId === pid); }
+function rosterFor(s){
+  return DB.players.filter(p => p.active && p.team === s.team).map(p => {
+    const a = attOf(s.id, p.id);
+    return { ...p, status:a ? a.status : 'Unconfirmed', ts:a ? a.ts : null, minsLate:a ? a.minsLate : 0 };
+  });
+}
+function countsOf(r){ const c = { total:r.length, present:0, late:0, unconfirmed:0, absent:0, excused:0 }; r.forEach(p => c[p.status.toLowerCase()]++); return c; }
+function setStatus(sid, pid, status, source, minsLate){
+  let a = attOf(sid, pid);
+  if (status === 'Unconfirmed'){ DB.attendance = DB.attendance.filter(x => x !== a); }
+  else if (a){ a.status = status; a.source = source; a.ts = Date.now(); a.minsLate = minsLate || 0; }
+  else DB.attendance.push({ sessionId:sid, playerId:pid, status, ts:Date.now(), minsLate:minsLate || 0, source });
+  save();
+}
+function doScan(code, manual){
+  const s = curSession();
+  if (!s) return { result:'ERROR', message:'Set up a session first' };
+  const [pid, tok] = String(code).trim().split('.');
+  const p = DB.players.find(x => x.id === pid);
+  if (!p) return { result:'ERROR', message:'QR not recognised' };
+  if (!manual && p.token !== tok) return { result:'ERROR', message:'QR revoked. Issue a new card', player:p };
+  if (!p.active) return { result:'ERROR', message:'Player is not active', player:p };
+  if (p.team !== s.team) return { result:'ERROR', message:p.name.split(' ')[0] + ' is ' + p.team + '. Session is ' + s.team, player:p };
+  if (s.status === 'Closed') return { result:'ERROR', message:'Session is finished', player:p };
+  const ex = attOf(s.id, p.id);
+  if (ex && (ex.status === 'Present' || ex.status === 'Late')) return { result:'DUPLICATE', message:'Already in at ' + fmtTs(ex.ts), player:p, ts:ex.ts };
+  const mins = Math.max(0, Math.round((Date.now() - startMs(s)) / 60000));
+  const status = mins > s.grace ? 'Late' : 'Present';
+  setStatus(s.id, p.id, status, manual ? 'Manual' : 'Scan', status === 'Late' ? mins : 0);
+  return { result:status.toUpperCase(), player:p, ts:Date.now(), minsLate:status === 'Late' ? mins : 0 };
+}
+/* === END: JS SESSIONS + ATTENDANCE LOGIC === */
+
+/* === START: JS RENDER — CARD FRONT + BACK === */
+let flashing = false;
+function fitPill(){
+  const el = $('pillName'); el.style.fontSize = '12.5px'; el.style.letterSpacing = '3px';
+  const max = el.clientWidth - 68; let ls = 3, fs = 12.5;
+  while (el.scrollWidth > el.clientWidth && ls > .5){ ls -= .25; el.style.letterSpacing = ls + 'px'; }
+  while (el.scrollWidth > el.clientWidth && fs > 9){ fs -= .5; el.style.fontSize = fs + 'px'; }
+}
+function setPill(name, pos, dot){ $('pillName').textContent = name; $('pillPos').textContent = pos; $('pillDot').className = 'pill-dot ' + (dot || ''); fitPill(); }
+function renderFront(){
+  const s = curSession();
+  if (!flashing){
+    if (s) setPill(s.team + ' TRAINING', fmt12(s.start) + (s.location ? ' | ' + s.location : '') + (s.status === 'Closed' ? ' | CLOSED' : ''), s.status === 'Open' ? 'g' : '');
+    else setPill('NO SESSION', 'TAP TO SET UP', '');
+  }
+  const c = s ? countsOf(rosterFor(s)) : { total:0, present:0, late:0, unconfirmed:0 };
+  const att = c.present + c.late, pct = c.total ? Math.round(att / c.total * 100) : 0;
+  $('stAtt').textContent = att; $('stTot').textContent = '/ ' + c.total; $('stPct').textContent = pct + '%'; $('stBar').style.width = pct + '%';
+  $('stP').textContent = c.present; $('stL').textContent = c.late; $('stU').textContent = c.unconfirmed;
+  const on = !!camStream;
+  $('cap1').className = 'cap-1' + (on ? '' : ' off');
+  $('cap1t').textContent = on ? (busy ? 'CHECKING…' : 'READY FOR NEXT PLAYER') : 'CAMERA OFF';
+  $('cap2').textContent = on ? 'Hold the QR inside the key' : 'Tap the key to start scanning';
+  $('camDot').setAttribute('fill', on ? '#34C759' : '#8E8E93');
+  renderBack(s);
+}
+function renderBack(s){
+  $('bkSub').textContent = s ? s.team + ' · ' + fmt12(s.start) + (s.coach ? ' · ' + s.coach : '') : 'No session';
+  $('bkId').textContent = s ? s.id : 'ARTIPLAY SCAN';
+  const rows = s ? DB.attendance.filter(a => a.sessionId === s.id).sort((a,b) => b.ts - a.ts).slice(0, 12) : [];
+  $('bkList').innerHTML = rows.length ? rows.map(a => {
+    const p = DB.players.find(x => x.id === a.playerId) || { name:a.playerId };
+    const col = { Present:'#34C759', Late:'#FF9F0A', Absent:'#FF453A', Excused:'#4A9DE0' }[a.status] || '#8E8E93';
+    return `<div class="bk-row"><i class="d" style="background:${col}"></i><span class="n">${esc(p.name)}</span><span class="t">${esc(a.status)} · ${fmtTs(a.ts)}</span></div>`;
+  }).join('') : `<div class="bk-empty">No scans yet.<br>Flip back and scan the first player.</div>`;
+}
+function initArt(){
+  let seed = 7; const rnd = () => (seed = (seed * 16807) % 2147483647) / 2147483647, cols = ['#E8CC7A','#F5DFA0','#FFE9A0'], g = $('dust'); let h = '';
+  for (let i = 0; i < 46; i++){ const x = rnd()*340, y = rnd()*470; if (x > 60 && x < 280 && y > 165 && y < 415) continue;
+    h += `<circle cx="${x.toFixed(1)}" cy="${y.toFixed(1)}" r="${(.5 + rnd()*.5).toFixed(2)}" fill="${cols[i%3]}" opacity="${(.28 + rnd()*.25).toFixed(2)}"/>`; }
+  g.innerHTML = h;
+  let f = '<circle cx="170" cy="290" r="32"/>'; [1,2,3].forEach(ring => { for (let i = 0; i < 6*ring; i++){ const a = (i / (6*ring)) * Math.PI * 2; f += `<circle cx="${(170 + Math.cos(a)*32*ring).toFixed(1)}" cy="${(290 + Math.sin(a)*32*ring).toFixed(1)}" r="32"/>`; } });
+  $('flower').innerHTML = f;
+}
+function flipCard(){ haptic(); $('flip').classList.toggle('flipped'); }
+function fitStage(){
+  const s = Math.min(innerWidth / 356, (innerHeight - 20) / 590, 1.3);
+  const w = $('wrap'); w.style.width = 340*s + 'px'; w.style.height = 580*s + 'px'; $('fit').style.transform = 'scale(' + s + ')';
+  fitPill();
+}
+addEventListener('resize', fitStage);
+/* === END: JS RENDER — CARD FRONT + BACK === */
+
+/* === START: JS CAMERA + QR DECODE === */
+let camStream = null, scanning = false, busy = false, lastCode = '', lastAt = 0, flashTimer = null;
+async function startCamera(){
+  if (camStream) return;
+  if (!curSession()){ toast('Set up a session first', 'error'); openSessions(); return; }
+  try{
+    camStream = await navigator.mediaDevices.getUserMedia({ video:{ facingMode:{ ideal:'environment' }, width:{ ideal:1280 } }, audio:false });
+    const v = $('video'); v.srcObject = camStream; await v.play();
+    scanning = true; $('idle').classList.add('hide'); renderFront(); tick();
+  }catch(e){ camStream = null; toast('Camera blocked. Allow access (HTTPS) or use Enter ID', 'error'); }
+}
+function stopCamera(){ scanning = false; if (camStream){ camStream.getTracks().forEach(t => t.stop()); camStream = null; } $('idle').classList.remove('hide'); renderFront(); }
+function toggleCamera(){ haptic(); camStream ? stopCamera() : startCamera(); }
+function tick(){
+  if (!scanning) return;
+  const v = $('video'), c = $('canvas');
+  if (v.readyState === v.HAVE_ENOUGH_DATA && !busy){
+    const k = Math.min(1, 480 / v.videoWidth); c.width = v.videoWidth * k; c.height = v.videoHeight * k;
+    const x = c.getContext('2d', { willReadFrequently:true }); x.drawImage(v, 0, 0, c.width, c.height);
+    const im = x.getImageData(0, 0, c.width, c.height), hit = window.jsQR && jsQR(im.data, im.width, im.height, { inversionAttempts:'attemptBoth' });
+    if (hit && hit.data) handleCode(hit.data);
+  }
+  requestAnimationFrame(tick);
+}
+document.addEventListener('visibilitychange', () => { if (document.hidden && camStream) stopCamera(); });
+/* === END: JS CAMERA + QR DECODE === */
+
+/* === START: JS HANDLE SCAN + RESULT FLASH === */
+function handleCode(code, manual){
+  if (busy) return; const now = Date.now();
+  if (!manual && code === lastCode && now - lastAt < 2500) return;
+  busy = true; lastCode = code; lastAt = now;
+  showResult(doScan(code, manual));
+}
+function showResult(r){
+  const kind = { PRESENT:'g', LATE:'o', DUPLICATE:'b', ERROR:'r' }[r.result];
+  const sub = r.result === 'PRESENT' ? 'PRESENT | ' + fmtTs(r.ts) : r.result === 'LATE' ? 'LATE ' + r.minsLate + ' MIN | ' + fmtTs(r.ts) : (r.message || 'ERROR');
+  flashing = true; setPill(r.player ? r.player.name.toUpperCase() : 'NOT RECOGNISED', sub, kind);
+  const ring = $('ring'); ring.setAttribute('stroke', { g:'#34C759', o:'#FF9F0A', b:'#4A9DE0', r:'#FF453A' }[kind]); ring.setAttribute('stroke-width', '4');
+  haptic(kind === 'r' ? 'err' : 'ok'); beep(kind === 'r' ? 'err' : kind === 'o' ? 'late' : 'ok');
+  renderFront();
+  clearTimeout(flashTimer);
+  flashTimer = setTimeout(() => { flashing = false; busy = false; ring.setAttribute('stroke', 'rgba(232,204,122,.55)'); ring.setAttribute('stroke-width', '2.5'); renderFront(); }, RESULT_MS);
+}
+/* === END: JS HANDLE SCAN + RESULT FLASH === */
+
+/* === START: JS SHEET — ENTER ID === */
+function openManual(){
+  haptic();
+  openSheet(`<h2>Enter player ID</h2><div class="sub">For a lost card or a phone that can't read the QR. Saved as a manual entry.</div>
+    <input class="input" id="manualId" placeholder="${PREFIX}0001" autocapitalize="characters" autocomplete="off">
+    <div class="stack"><button class="b-dark" onclick="submitManual()">Check in</button><button class="b-light" onclick="closeSheet()">Cancel</button></div>`);
+  setTimeout(() => $('manualId') && $('manualId').focus(), 320);
+}
+function submitManual(){
+  let id = ($('manualId').value || '').trim().toUpperCase(); if (!id) return toast('Enter a player ID', 'error');
+  if (/^\d+$/.test(id)) id = PREFIX + id.padStart(4, '0');
+  closeSheet(); busy = false; handleCode(id, true);
+}
+/* === END: JS SHEET — ENTER ID === */
+
+/* === START: JS SHEET — ROSTER === */
+let rFilter = 'All';
+const FILTERS = ['All','Present','Late','Unconfirmed','Absent','Excused'];
+function openRoster(){
+  haptic(); const s = curSession(); if (!s) return openSessions();
+  const r = rosterFor(s), c = countsOf(r);
+  const list = r.filter(p => rFilter === 'All' || p.status === rFilter);
+  openSheet(`<h2>Roster</h2><div class="sub">${s.team} · ${c.present + c.late} of ${c.total} attended</div>
+    <div class="filters">${FILTERS.map(f => `<button class="chip ${rFilter === f ? 'active' : ''}" onclick="rFilter='${f}';openRoster()">${f} ${f === 'All' ? c.total : c[f.toLowerCase()]}</button>`).join('')}</div>
+    <div class="group">${list.length ? list.map(p => `<div class="row tap" onclick="openResolve('${p.id}')"><div class="av" style="background:${colorFor(p.name)}">${initials(p.name)}</div>
+      <div class="rt"><b>${esc(p.name)}</b><span>${esc(p.position)}${p.ts ? ' · ' + fmtTs(p.ts) : ''}${p.minsLate ? ' · ' + p.minsLate + ' min late' : ''}</span></div>
+      <span class="tag ${p.status.toLowerCase()}">${p.status}</span></div>`).join('') : '<div class="empty">No players in this view.<br>Add players in Cards.</div>'}</div>`);
+}
+function openResolve(pid){
+  const s = curSession(), p = DB.players.find(x => x.id === pid); if (!p) return; haptic();
+  const st = (attOf(s.id, pid) || {}).status || 'Unconfirmed';
+  openSheet(`<h2>${esc(p.name)}</h2><div class="sub">${p.team} · currently ${st}. Fix it here and the report updates.</div>
+    <div class="stack"><button class="b-dark" onclick="resolve('${pid}','Present')">Mark present (manual)</button>
+    <button class="b-light" onclick="resolve('${pid}','Excused')">Mark excused</button>
+    <button class="b-light b-danger" onclick="resolve('${pid}','Absent')">Mark absent</button>
+    ${st !== 'Unconfirmed' ? `<button class="b-light" onclick="resolve('${pid}','Unconfirmed')">Reset to unconfirmed</button>` : ''}
+    <button class="b-light" onclick="openRoster()">Back</button></div>`);
+}
+function resolve(pid, status){ setStatus(curSession().id, pid, status, 'Admin review', 0); haptic('ok'); renderFront(); openRoster(); }
+/* === END: JS SHEET — ROSTER === */
+
+/* === START: JS SHEET — REPORT === */
+function reportText(s, r, c){
+  const nm = st => r.filter(p => p.status === st).map(p => p.name), att = c.present + c.late;
+  return ['TRAINING REPORT', `${s.team} · ${s.date} · ${fmt12(s.start)}${s.coach ? ' · ' + s.coach : ''}`,
+    `Attendance: ${att}/${c.total} (${c.total ? Math.round(att / c.total * 100) : 0}%)`,
+    `Present ${c.present} · Late ${c.late} · Unconfirmed ${c.unconfirmed} · Absent ${c.absent} · Excused ${c.excused}`,
+    nm('Late').length ? 'Late: ' + nm('Late').join(', ') : '', nm('Unconfirmed').length ? 'Needs review: ' + nm('Unconfirmed').join(', ') : '',
+    nm('Absent').length ? 'Absent: ' + nm('Absent').join(', ') : ''].filter(Boolean).join('\n');
+}
+function openReport(){
+  haptic(); const s = curSession(); if (!s) return openSessions();
+  const r = rosterFor(s), c = countsOf(r), att = c.present + c.late, pct = c.total ? Math.round(att / c.total * 100) : 0;
+  const nm = st => r.filter(p => p.status === st).map(p => esc(p.name)), closed = s.status === 'Closed';
+  const list = (t, a) => a.length ? `<div class="lbl">${t} (${a.length})</div><div class="group"><div class="names">${a.join(', ')}</div></div>` : '';
+  openSheet(`<h2>Training report</h2><div class="sub">${s.team} · ${fmt12(s.start)} · ${closed ? 'Finished' : 'In progress'}</div>
+    <div class="hero"><b>${att}<small> / ${c.total}</small></b><p>${pct}% attendance${s.coach ? ' · ' + esc(s.coach) : ''}</p><div class="bar"><i style="width:${pct}%"></i></div></div>
+    <div class="group"><div class="kv"><span>Present</span><span style="color:var(--green-d)">${c.present}</span></div><div class="kv"><span>Late</span><span style="color:var(--orange-d)">${c.late}</span></div>
+    <div class="kv"><span>Unconfirmed</span><span>${c.unconfirmed}</span></div><div class="kv"><span>Absent</span><span style="color:var(--red-d)">${c.absent}</span></div><div class="kv"><span>Excused</span><span>${c.excused}</span></div></div>
+    ${list('Late', nm('Late'))}${list('Needs review', nm('Unconfirmed'))}${list('Absent', nm('Absent'))}
+    <div class="stack">${closed ? '<button class="b-dark" onclick="setSessionStatus(\'Open\')">Reopen session</button>' : '<button class="b-dark" onclick="confirmFinish()">Finish session</button>'}
+    <button class="b-light" onclick="copyReport()">Copy report</button><button class="b-light" onclick="exportCsv()">Export attendance CSV</button></div>`);
+}
+function copyReport(){ const s = curSession(), r = rosterFor(s); copy(reportText(s, r, countsOf(r))); }
+function confirmFinish(){
+  const c = countsOf(rosterFor(curSession())), u = c.unconfirmed;
+  openSheet(`<h2>Finish this session?</h2><div class="sub">${u ? u + ' player' + (u > 1 ? 's have' : ' has') + ' no scan. They stay Unconfirmed so you can review them later.' : 'Everyone is accounted for.'}</div>
+    <div class="stack"><button class="b-dark" onclick="setSessionStatus('Closed')">Finish session</button><button class="b-light" onclick="openReport()">Keep scanning</button></div>`);
+}
+function setSessionStatus(st){ curSession().status = st; save(); haptic('ok'); renderFront(); toast(st === 'Closed' ? 'Session finished' : 'Session reopened', 'success'); openReport(); }
+function exportCsv(){
+  const s = curSession(), q = v => '"' + String(v == null ? '' : v).replace(/"/g, '""') + '"';
+  const rows = [['Session','Date','Team','Player ID','Name','Status','Time','Minutes late','Source']];
+  rosterFor(s).forEach(p => { const a = attOf(s.id, p.id) || {}; rows.push([s.id, s.date, s.team, p.id, p.name, p.status, p.ts ? fmtTs(p.ts) : '', p.minsLate || '', a.source || '']); });
+  download('attendance-' + s.id + '.csv', rows.map(r => r.map(q).join(',')).join('\r\n')); toast('CSV saved', 'success');
+}
+/* === END: JS SHEET — REPORT === */
+
+/* === START: JS SHEET — SESSIONS + WEEKLY SCHEDULE === */
+function teamsList(){ return [...new Set(DB.players.map(p => p.team))]; }
+function openSessions(){
+  haptic();
+  const list = [...DB.sessions].sort((a,b) => (b.date + b.start).localeCompare(a.date + a.start)).slice(0, 8);
+  const teams = teamsList();
+  openSheet(`<h2>Sessions</h2><div class="sub">Pick the session you're scanning for. Weekly schedules create it automatically.</div>
+    <div class="group">${list.map(s => `<div class="row tap" onclick="pickSession('${s.id}')"><div class="av" style="background:${colorFor(s.team)};font-size:11px">${esc(s.team)}</div>
+      <div class="rt"><b>${esc(s.team)} · ${fmt12(s.start)}</b><span>${s.date === todayStr() ? 'Today' : s.date}${s.location ? ' · ' + esc(s.location) : ''}</span></div>
+      <span class="tag ${s.status.toLowerCase()}">${s.status}</span></div>`).join('') || '<div class="empty">No sessions yet.</div>'}</div>
+    <div class="lbl">New session</div>
+    <datalist id="teams">${teams.map(t => `<option value="${esc(t)}">`).join('')}</datalist>
+    <div class="grid2"><input class="input" id="nsTeam" list="teams" placeholder="Team (U14)" value="${esc(teams[0] || '')}"><input class="input" id="nsStart" type="time" value="${hhmm()}"></div>
+    <div class="grid2" style="margin-top:8px"><input class="input" id="nsCoach" placeholder="Coach"><input class="input" id="nsLoc" placeholder="Location"></div>
+    <div class="grid2" style="margin-top:8px"><input class="input" id="nsGrace" type="number" inputmode="numeric" value="10" placeholder="Grace (min)"><button class="b-gold" onclick="createSession()">Start session</button></div>
+    <div class="lbl">Weekly schedule (auto-creates sessions)</div>
+    <div class="group">${DB.schedules.length ? DB.schedules.map((x,i) => `<div class="row"><div class="rt"><b>${esc(x.team)} · ${x.day}</b><span>${fmt12(x.start)} · grace ${x.grace} min</span></div>
+      <button class="tag absent" onclick="delSchedule(${i})">Remove</button></div>`).join('') : '<div class="empty">No weekly schedule yet.</div>'}</div>
+    <div class="grid2" style="margin-top:8px"><input class="input" id="scTeam" list="teams" placeholder="Team"><select class="input" id="scDay">${DAYS.map((d,i) => `<option ${i === new Date().getDay() ? 'selected' : ''}>${d}</option>`).join('')}</select></div>
+    <div class="grid2" style="margin-top:8px"><input class="input" id="scStart" type="time" value="16:00"><button class="b-light" onclick="addSchedule()">Add to schedule</button></div>
+    <div class="stack"><button class="b-light" onclick="openBackup()">Backup / move to another phone</button></div>`);
+}
+function pickSession(id){ DB.currentSessionId = id; save(); haptic(); closeSheet(); renderFront(); }
+function createSession(){
+  const team = $('nsTeam').value.trim(), start = $('nsStart').value; if (!team || !start) return toast('Team and time are required', 'error');
+  const s = makeSession(team, start, $('nsGrace').value, $('nsCoach').value.trim(), $('nsLoc').value.trim()); DB.currentSessionId = s.id; save();
+  haptic('ok'); closeSheet(); renderFront(); toast('Session ready. Tap the key to scan', 'success');
+}
+function addSchedule(){
+  const team = $('scTeam').value.trim(), start = $('scStart').value; if (!team || !start) return toast('Team and time are required', 'error');
+  DB.schedules.push({ team, day:$('scDay').value, start, grace:10, coach:'', location:'' }); save(); ensureToday(); renderFront(); openSessions(); toast('Schedule added', 'success');
+}
+function delSchedule(i){ DB.schedules.splice(i, 1); save(); openSessions(); }
+/* === END: JS SHEET — SESSIONS + WEEKLY SCHEDULE === */
+
+/* === START: JS SHEET — CARDS (players + QR) === */
+function openCards(){
+  haptic(); const q = ($('cardSearch') || {}).value || '';
+  const list = DB.players.filter(p => p.active && (!q || (p.name + p.id + p.team).toLowerCase().includes(q.toLowerCase())));
+  openSheet(`<h2>Player cards</h2><div class="sub">${DB.players.filter(p => p.active).length} players. Each QR holds only a private token, never personal info.</div>
+    <div class="grid2"><button class="b-gold" onclick="openAddPlayers()">Add players</button><button class="b-light" onclick="printAllCards()">Print all cards</button></div>
+    <input class="input" id="cardSearch" placeholder="Search name, ID or team" style="margin:12px 0" oninput="filterCards()" value="${esc(q)}">
+    <div class="group" id="cardList">${cardRows(list)}</div>
+    ${DB.players.some(p => p.demo) ? '<div class="stack"><button class="b-light b-danger" onclick="clearDemo()">Remove demo players</button></div>' : ''}`);
+}
+function cardRows(list){
+  return list.length ? list.map(p => `<div class="row tap" onclick="openCard('${p.id}')"><div class="av" style="background:${colorFor(p.name)}">${initials(p.name)}</div>
+    <div class="rt"><b>${esc(p.name)}</b><span>${p.id} · ${esc(p.team)}</span></div>
+    <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="rgba(60,60,67,.3)" stroke-width="2.2"><polyline points="9 18 15 12 9 6"/></svg></div>`).join('') : '<div class="empty">No players found.</div>';
+}
+function filterCards(){
+  const q = $('cardSearch').value.toLowerCase();
+  $('cardList').innerHTML = cardRows(DB.players.filter(p => p.active && (!q || (p.name + p.id + p.team).toLowerCase().includes(q))));
+}
+function cardHtml(p){ return `<div class="pcard"><div class="club">LIVITY FOOTBALL ACADEMY</div><div class="qr" data-code="${p.id}.${p.token}"></div><div class="pn">${esc(p.name)}</div><div class="pm">${esc(p.team)} · ${esc(p.position)}</div><div class="pi">${p.id}</div></div>`; }
+function drawQRs(root){ root.querySelectorAll('.qr').forEach(b => { b.innerHTML = ''; new QRCode(b, { text:b.dataset.code, width:360, height:360, colorDark:'#1c1c1e', colorLight:'#ffffff', correctLevel:QRCode.CorrectLevel.M }); }); }
+function openCard(pid){
+  const p = DB.players.find(x => x.id === pid); if (!p) return; haptic();
+  openSheet(`<div id="oneCard">${cardHtml(p)}</div><div class="stack"><button class="b-dark" onclick="printOne('${pid}')">Print card</button>
+    <button class="b-light" onclick="closeSheet();testScan('${pid}')">Test scan this player</button><button class="b-light" onclick="copy('${pid}')">Copy player ID</button>
+    <button class="b-light b-danger" onclick="reissue('${pid}')">Lost card? Issue new QR</button><button class="b-light" onclick="removePlayer('${pid}')">Remove player</button><button class="b-light" onclick="openCards()">Back</button></div>`);
+  drawQRs($('oneCard'));
+}
+function testScan(pid){ const p = DB.players.find(x => x.id === pid); busy = false; handleCode(p.id + '.' + p.token, false); }
+function reissue(pid){ if (!confirm('Revoke the old QR? The old card stops working.')) return; DB.players.find(x => x.id === pid).token = newToken(); save(); haptic('ok'); openCard(pid); toast('New QR ready to print', 'success'); }
+function removePlayer(pid){ if (!confirm('Remove this player from the roster? Past attendance is kept.')) return; DB.players.find(x => x.id === pid).active = false; save(); renderFront(); openCards(); }
+function clearDemo(){ if (!confirm('Remove all demo players?')) return; DB.players.forEach(p => { if (p.demo) p.active = false; }); save(); renderFront(); openCards(); }
+function printOne(pid){
+  const p = DB.players.find(x => x.id === pid), el = document.createElement('div'); el.id = 'printOne'; el.innerHTML = cardHtml(p); document.body.appendChild(el); drawQRs(el);
+  setTimeout(() => { print(); setTimeout(() => el.remove(), 600); }, 250);
+}
+function printAllCards(){
+  const box = $('printAll'); box.innerHTML = DB.players.filter(p => p.active).map(cardHtml).join(''); drawQRs(box);
+  setTimeout(() => { print(); setTimeout(() => box.innerHTML = '', 600); }, 400);
+}
+function openAddPlayers(){
+  const teams = teamsList();
+  openSheet(`<h2>Add players</h2><div class="sub">One per line: <b>Name, Team, Position</b>. Team and position are optional if you fill the default below. IDs and QR tokens are created automatically.</div>
+    <textarea class="input" id="apText" placeholder="Juan Dela Cruz, U14, Midfielder&#10;Pedro Santos, U14, Defender&#10;Ana Reyes, U12"></textarea>
+    <datalist id="teams">${teams.map(t => `<option value="${esc(t)}">`).join('')}</datalist>
+    <input class="input" id="apTeam" list="teams" placeholder="Default team (used when a line has none)" style="margin-top:8px">
+    <div class="stack"><button class="b-dark" onclick="addPlayers()">Create players + QR</button><button class="b-light" onclick="openCards()">Cancel</button></div>`);
+}
+function addPlayers(){
+  const dt = $('apTeam').value.trim(); let n = 0;
+  $('apText').value.split(/\n/).forEach(line => {
+    const [name, team, pos] = line.split(/[,;\t]/).map(x => x.trim()); if (!name) return;
+    if (!(team || dt)){ return; } addPlayerTo(DB, name, team || dt, pos, false); n++;
+  });
+  if (!n) return toast('Add at least one line with a team', 'error');
+  save(); haptic('ok'); renderFront(); openCards(); toast(n + ' player' + (n > 1 ? 's' : '') + ' added', 'success');
+}
+/* === END: JS SHEET — CARDS === */
+
+/* === START: JS SHEET — BACKUP === */
+function openBackup(){
+  const data = JSON.stringify({ players:DB.players, schedules:DB.schedules, seq:DB.seq });
+  openSheet(`<h2>Backup</h2><div class="sub">Each phone keeps its own data. To scan on two phones, copy this backup on the first and restore it on the second. The player list and QR tokens move over, so every card works on both.</div>
+    <textarea class="input" id="bkText" style="font-size:11px">${esc(data)}</textarea>
+    <div class="stack"><button class="b-dark" onclick="copy($('bkText').value)">Copy backup</button><button class="b-light" onclick="restoreBackup()">Restore from text above</button>
+    <button class="b-light" onclick="openSessions()">Back</button></div>`);
+}
+function restoreBackup(){
+  try{ const d = JSON.parse($('bkText').value); if (!Array.isArray(d.players)) throw 0;
+    if (!confirm('Replace players and schedule on this phone?')) return;
+    DB.players = d.players; DB.schedules = d.schedules || []; DB.seq = d.seq || d.players.length; save(); ensureToday(); renderFront(); closeSheet(); toast('Backup restored', 'success');
+  }catch(e){ toast('That backup text is not valid', 'error'); }
+}
+/* === END: JS SHEET — BACKUP === */
+
+/* === START: JS BOOT === */
+initArt(); ensureToday(); fitStage(); renderFront();
+/* === END: JS BOOT === */
+</script>
+</body>
+</html>

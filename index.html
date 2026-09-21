@@ -17,7 +17,7 @@
 
 /* === START: CSS TOKENS + BASE === */
 :root{
-  --cream:#ECE4D6; --pill:#F3EDE4; --ink:#1c1c1e; --gold:#E8CC7A; --gold-d:#C9A227; --card:#2F343A;
+  --cream:#ECE4D6; --pill:#F3EDE4; --ink:#1c1c1e; --gold:#E8CC7A; --gold-d:#C9A227; --card:#15171A;
   --glass:rgba(255,255,255,0.72); --sub:rgba(60,60,67,0.55); --faint:rgba(60,60,67,0.35); --line:rgba(0,0,0,0.07);
   --green:#34C759; --green-d:#1c8a3e; --orange:#FF9F0A; --orange-d:#a06000; --red:#FF453A; --red-d:#c4281e; --blue:#4A9DE0;
   --font:-apple-system,'SF Pro Text','Helvetica Neue',sans-serif; --font-d:-apple-system,'SF Pro Display','Helvetica Neue',sans-serif;
@@ -43,7 +43,7 @@ input,textarea,select{font-family:inherit}
 @keyframes reveal{0%{opacity:0;transform:translateY(40px) rotateX(10deg)}100%{opacity:1;transform:none}}
 .face{position:absolute;inset:0;border-radius:24px;overflow:hidden;backface-visibility:hidden;-webkit-backface-visibility:hidden;
   background-color:var(--card);
-  background-image:repeating-linear-gradient(45deg,rgba(255,255,255,.012) 0 1px,transparent 1px 7px),repeating-linear-gradient(-45deg,rgba(255,255,255,.012) 0 1px,transparent 1px 7px);
+  background-image:repeating-linear-gradient(45deg,rgba(255,255,255,.008) 0 1px,transparent 1px 7px),repeating-linear-gradient(-45deg,rgba(255,255,255,.008) 0 1px,transparent 1px 7px);
   box-shadow:0 0 0 .5px rgba(255,255,255,.08),0 60px 120px rgba(0,0,0,.6),0 24px 60px rgba(0,0,0,.45),0 8px 24px rgba(0,0,0,.35),inset 0 1px 0 rgba(255,255,255,.09)}
 .face::after{content:'';position:absolute;inset:0;border-radius:24px;border:1px solid rgba(255,255,255,.15);pointer-events:none;z-index:100}
 .back{transform:rotateY(180deg)}
@@ -124,9 +124,14 @@ input,textarea,select{font-family:inherit}
 .row{display:flex;align-items:center;gap:12px;padding:12px 14px;position:relative}
 .row+.row::before{content:'';position:absolute;top:0;left:60px;right:0;height:1px;background:var(--line)}
 .row.tap{cursor:pointer}.row.tap:active{background:rgba(0,0,0,.04)}
+.row.current{background:rgba(232,204,122,.12);box-shadow:inset 3px 0 0 var(--gold-d)}
+.cur-badge{display:inline-block;font-size:8.5px;font-weight:800;letter-spacing:.07em;color:var(--gold-d);background:rgba(232,204,122,.2);padding:2px 6px;border-radius:8px;margin-left:6px;vertical-align:middle}
+.rt-loc{display:block;font-size:11px;color:var(--faint);margin-top:1px}
 .av{width:36px;height:36px;border-radius:50%;display:flex;align-items:center;justify-content:center;color:#fff;font-size:13px;font-weight:700;flex-shrink:0}
 .rt{flex:1;min-width:0}.rt b{display:block;font-size:14.5px;font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .rt span{font-size:12px;color:var(--sub)}
+.rt-id{opacity:.65;font-variant-numeric:tabular-nums}
+.security-note{font-size:12.5px;color:var(--sub);line-height:1.5;margin:2px 0 14px}
 .tag{font-size:10.5px;font-weight:700;padding:4px 10px;border-radius:20px;flex-shrink:0;white-space:nowrap}
 .tag.present{background:rgba(52,199,89,.13);color:var(--green-d)}.tag.late{background:rgba(255,159,10,.14);color:var(--orange-d)}
 .tag.unconfirmed{background:rgba(60,60,67,.08);color:var(--sub)}.tag.absent{background:rgba(255,69,58,.1);color:var(--red-d)}
@@ -149,6 +154,17 @@ textarea.input{min-height:120px;resize:vertical;line-height:1.5;font-size:14px}
 .kv{display:flex;justify-content:space-between;padding:11px 16px;font-size:14px}.kv+.kv{border-top:1px solid var(--line)}.kv span:first-child{color:var(--sub)}.kv span:last-child{font-weight:600}
 .names{padding:4px 16px 12px;font-size:13.5px;line-height:1.7}
 .empty{padding:26px 16px;text-align:center;font-size:13.5px;color:var(--faint);line-height:1.6}
+.rep-team{font-family:var(--font-d);font-size:22px;font-weight:700;letter-spacing:-.01em}
+.rep-meta{font-size:13px;color:var(--sub);margin-top:2px}
+.rep-badge{display:inline-block;font-size:10.5px;font-weight:700;letter-spacing:.05em;padding:3px 10px;border-radius:20px;margin-top:8px}
+.rep-badge.progress{background:rgba(74,157,224,.13);color:#2b6ea3}
+.rep-badge.finished{background:rgba(60,60,67,.08);color:var(--sub)}
+.rep-coach{font-size:12.5px;color:var(--faint);margin:2px 0 12px}
+.hero.unstarted p{color:var(--faint)}
+.rep-section-lbl{font-size:11px;font-weight:700;letter-spacing:.06em;text-transform:uppercase;color:var(--faint);margin:18px 2px 8px;display:flex;justify-content:space-between}
+.plist-row{padding:10px 14px;font-size:13.5px;font-weight:500}
+.plist-row+.plist-row{border-top:1px solid var(--line)}
+.stack+.lbl{margin-top:22px}
 .toast{position:fixed;bottom:max(24px,env(safe-area-inset-bottom));left:50%;transform:translateX(-50%) translateY(20px);background:rgba(28,28,30,.92);
   backdrop-filter:blur(20px);-webkit-backdrop-filter:blur(20px);border:.8px solid rgba(255,255,255,.1);color:#fff;font-size:13px;font-weight:500;
   padding:12px 20px;border-radius:14px;opacity:0;pointer-events:none;transition:all .3s var(--ease);z-index:900;max-width:92vw;text-align:center}
@@ -159,7 +175,7 @@ textarea.input{min-height:120px;resize:vertical;line-height:1.5;font-size:14px}
 .pcard{background:var(--card);border-radius:24px;padding:20px 20px 16px;color:#fff;text-align:center;
   background-image:repeating-linear-gradient(45deg,rgba(255,255,255,.012) 0 1px,transparent 1px 7px)}
 .pcard .club{font-size:10px;font-weight:700;letter-spacing:.22em;color:rgba(232,204,122,.85);margin-bottom:12px}
-.pcard .qr{width:180px;height:180px;background:#fff;border-radius:50%;margin:0 auto 14px;padding:22px;display:flex;align-items:center;justify-content:center;
+.pcard .qr{width:180px;height:180px;background:#fff;border-radius:50%;margin:0 auto 14px;padding:34px;display:flex;align-items:center;justify-content:center;
   box-shadow:0 0 0 6px rgba(255,255,255,.08)}
 .pcard .qr img,.pcard .qr canvas{width:100%!important;height:100%!important}
 .pcard .pn{font-family:var(--font-d);font-size:18px;font-weight:700;letter-spacing:.06em;text-transform:uppercase}
@@ -278,7 +294,37 @@ textarea.input{min-height:120px;resize:vertical;line-height:1.5;font-size:14px}
 <script>
 /* === START: JS STORE === */
 const KEY = 'artiplay-scan-v1', PREFIX = 'LVTFA-', RESULT_MS = 1700;
+const CONFIG = { url: 'PASTE_YOUR_EXEC_URL_HERE', key: 'PASTE_YOUR_ADMIN_KEY_HERE' };
+async function api(action, params){
+  const res = await fetch(CONFIG.url, {
+    method:'POST',
+    headers:{ 'Content-Type':'text/plain;charset=utf-8' },   // simple request = walang CORS preflight (hindi sinasagot ng Apps Script ang OPTIONS)
+    body: JSON.stringify({ action, key: CONFIG.key, ...params }),
+    redirect:'follow'
+  });
+  const data = await res.json();
+  if (!data.ok) throw new Error(data.error || 'Server error');
+  return data;
+}
 const $ = id => document.getElementById(id);
+let liveCounts = null;
+async function syncRosterFromServer(s){
+  const rr = await api('roster', { sessionId:s.id });
+  rr.players.forEach(rp => {
+    let local = DB.players.find(x => x.id === rp.playerId);
+    if (!local){ local = { id:rp.playerId, active:true }; DB.players.push(local); }
+    Object.assign(local, { name:rp.name, team:rp.team, position:rp.position });
+    let a = attOf(s.id, rp.playerId);
+    if (rp.status !== 'Unconfirmed'){
+      if (!a){ a = { sessionId:s.id, playerId:rp.playerId }; DB.attendance.push(a); }
+      a.status = rp.status; a.minsLate = rp.minutesLate || 0;
+    } else if (a){
+      DB.attendance = DB.attendance.filter(x => x !== a);
+    }
+  });
+  save();
+  return rr.counts;
+}
 let DB = load();
 function load(){
   try{ const d = JSON.parse(localStorage.getItem(KEY)); if (d && d.players) return d; }catch(e){}
@@ -313,8 +359,9 @@ function beep(k){
 }
 let tt = null;
 function toast(m, t){ const e = $('toast'); e.textContent = m; e.className = 'toast ' + (t||'') + ' show'; clearTimeout(tt); tt = setTimeout(() => e.className = 'toast', 2600); }
+let currentSheetView = null;
 function openSheet(h){ $('sheetBody').innerHTML = h; $('overlay').classList.add('show'); }
-function closeSheet(){ $('overlay').classList.remove('show'); }
+function closeSheet(){ $('overlay').classList.remove('show'); currentSheetView = null; }
 function download(name, text, type){ const a = document.createElement('a'); a.href = URL.createObjectURL(new Blob([text], { type:type || 'text/csv' })); a.download = name; document.body.appendChild(a); a.click(); setTimeout(() => { URL.revokeObjectURL(a.href); a.remove(); }, 800); }
 function copy(t){ (navigator.clipboard ? navigator.clipboard.writeText(t) : Promise.reject()).then(() => toast('Copied', 'success')).catch(() => { const a = document.createElement('textarea'); a.value = t; document.body.appendChild(a); a.select(); try{ document.execCommand('copy'); toast('Copied', 'success'); }catch(e){ toast('Copy failed', 'error'); } a.remove(); }); }
 /* === END: JS HELPERS === */
@@ -328,7 +375,21 @@ function makeSession(team, start, grace, coach, location, date){
   if (!s){ s = { id, date:date || todayStr(), team, start, grace:Number(grace) || 10, coach:coach || '', location:location || '', status:'Open' }; DB.sessions.push(s); }
   return s;
 }
-function ensureToday(){
+async function ensureToday(){
+  try{
+    const r = await api('sessions', {});
+    r.sessions.forEach(s => {
+      let local = DB.sessions.find(x => x.id === s.sessionId);
+      if (!local){ local = { id:s.sessionId }; DB.sessions.push(local); }
+      Object.assign(local, { date:s.date, team:s.team, start:s.start, coach:s.coach, location:s.location, grace:s.grace, status:s.status });
+    });
+    if (!DB.currentSessionId || !DB.sessions.find(x => x.id === DB.currentSessionId)){
+      const open = DB.sessions.filter(s => s.date === todayStr()).sort((a,b) => a.start.localeCompare(b.start));
+      DB.currentSessionId = (open.find(s => s.status === 'Open') || open[0] || {}).id || null;
+    }
+    save();
+    return;
+  }catch(e){ toast('Offline — using local schedule', 'error'); }
   const day = DAYS[new Date().getDay()];
   DB.schedules.filter(x => x.day === day).forEach(x => makeSession(x.team, x.start, x.grace, x.coach, x.location));
   if (!DB.sessions.length){ const s = makeSession('U14', hhmm(), 10, 'Coach Mark', 'Livity Field'); DB.currentSessionId = s.id; }
@@ -355,22 +416,21 @@ function setStatus(sid, pid, status, source, minsLate){
   else DB.attendance.push({ sessionId:sid, playerId:pid, status, ts:Date.now(), minsLate:minsLate || 0, source });
   save();
 }
-function doScan(code, manual){
+async function doScan(code, manual){
   const s = curSession();
   if (!s) return { result:'ERROR', message:'Set up a session first' };
-  const [pid, tok] = String(code).trim().split('.');
-  const p = DB.players.find(x => x.id === pid);
-  if (!p) return { result:'ERROR', message:'QR not recognised' };
-  if (!manual && p.token !== tok) return { result:'ERROR', message:'QR revoked. Issue a new card', player:p };
-  if (!p.active) return { result:'ERROR', message:'Player is not active', player:p };
-  if (p.team !== s.team) return { result:'ERROR', message:p.name.split(' ')[0] + ' is ' + p.team + '. Session is ' + s.team, player:p };
-  if (s.status === 'Closed') return { result:'ERROR', message:'Session is finished', player:p };
-  const ex = attOf(s.id, p.id);
-  if (ex && (ex.status === 'Present' || ex.status === 'Late')) return { result:'DUPLICATE', message:'Already in at ' + fmtTs(ex.ts), player:p, ts:ex.ts };
-  const mins = Math.max(0, Math.round((Date.now() - startMs(s)) / 60000));
-  const status = mins > s.grace ? 'Late' : 'Present';
-  setStatus(s.id, p.id, status, manual ? 'Manual' : 'Scan', status === 'Late' ? mins : 0);
-  return { result:status.toUpperCase(), player:p, ts:Date.now(), minsLate:status === 'Late' ? mins : 0 };
+  const [pid] = String(code).trim().split('.');
+  const r = await api('scan', { sessionId:s.id, code, manual: manual ? '1' : '0' });
+  if (r.player){
+    let local = DB.players.find(x => x.id === r.player.playerId);
+    if (!local){ local = { id:r.player.playerId, active:true }; DB.players.push(local); }
+    Object.assign(local, { name:r.player.name, team:r.player.team, position:r.player.position });
+  }
+  if (r.result === 'PRESENT' || r.result === 'LATE'){
+    setStatus(s.id, r.player.playerId, r.result === 'LATE' ? 'Late' : 'Present', manual ? 'Manual' : 'Scan', r.minutesLate || 0);
+  }
+  if (r.counts) liveCounts = { sessionId:s.id, counts:r.counts };
+  return { result:r.result, message:r.message, player: DB.players.find(x => x.id === pid), ts:Date.now(), minsLate:r.minutesLate || 0 };
 }
 /* === END: JS SESSIONS + ATTENDANCE LOGIC === */
 
@@ -389,7 +449,7 @@ function renderFront(){
     if (s) setPill(s.team + ' TRAINING', fmt12(s.start) + (s.location ? ' | ' + s.location : '') + (s.status === 'Closed' ? ' | CLOSED' : ''), s.status === 'Open' ? 'g' : '');
     else setPill('NO SESSION', 'TAP TO SET UP', '');
   }
-  const c = s ? countsOf(rosterFor(s)) : { total:0, present:0, late:0, unconfirmed:0 };
+  const c = s ? (liveCounts && liveCounts.sessionId === s.id ? liveCounts.counts : countsOf(rosterFor(s))) : { total:0, present:0, late:0, unconfirmed:0 };
   const att = c.present + c.late, pct = c.total ? Math.round(att / c.total * 100) : 0;
   $('stAtt').textContent = att; $('stTot').textContent = '/ ' + c.total; $('stPct').textContent = pct + '%'; $('stBar').style.width = pct + '%';
   $('stP').textContent = c.present; $('stL').textContent = c.late; $('stU').textContent = c.unconfirmed;
@@ -429,25 +489,52 @@ addEventListener('resize', fitStage);
 
 /* === START: JS CAMERA + QR DECODE === */
 let camStream = null, scanning = false, busy = false, lastCode = '', lastAt = 0, flashTimer = null;
+function tryGetCamera(videoConstraints){ return navigator.mediaDevices.getUserMedia({ video:videoConstraints, audio:false }); }
+function cameraFallback(msg){ toast(msg, 'error'); openManual(); }
 async function startCamera(){
   if (camStream) return;
   if (!curSession()){ toast('Set up a session first', 'error'); openSessions(); return; }
+  if (!window.isSecureContext) return cameraFallback('Camera needs HTTPS. Enter ID instead');
+  if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) return cameraFallback('Camera not supported here. Enter ID instead');
   try{
-    camStream = await navigator.mediaDevices.getUserMedia({ video:{ facingMode:{ ideal:'environment' }, width:{ ideal:1280 } }, audio:false });
+    camStream = await tryGetCamera({ facingMode:{ ideal:'environment' }, width:{ ideal:1280 } });
+  }catch(e1){
+    try{ camStream = await tryGetCamera(true); }
+    catch(e2){
+      const denied = /Permission|NotAllowed/i.test((e2 && e2.name) || (e1 && e1.name) || '');
+      return cameraFallback(denied ? 'Camera access denied. Allow it, or Enter ID' : 'No usable camera found. Enter ID instead');
+    }
+  }
+  try{
     const v = $('video'); v.srcObject = camStream; await v.play();
     scanning = true; $('idle').classList.add('hide'); renderFront(); tick();
-  }catch(e){ camStream = null; toast('Camera blocked. Allow access (HTTPS) or use Enter ID', 'error'); }
+    if (!qrDetector && !window.jsQR) toast('QR decoder did not load. Check internet', 'error');
+  }catch(e){ stopCamera(); cameraFallback('Camera could not start. Enter ID instead'); }
 }
 function stopCamera(){ scanning = false; if (camStream){ camStream.getTracks().forEach(t => t.stop()); camStream = null; } $('idle').classList.remove('hide'); renderFront(); }
 function toggleCamera(){ haptic(); camStream ? stopCamera() : startCamera(); }
-function tick(){
+let qrDetector = null;
+if ('BarcodeDetector' in window){ try{ qrDetector = new BarcodeDetector({ formats:['qr_code'] }); }catch(e){} }
+async function tick(){
   if (!scanning) return;
   const v = $('video'), c = $('canvas');
-  if (v.readyState === v.HAVE_ENOUGH_DATA && !busy){
-    const k = Math.min(1, 480 / v.videoWidth); c.width = v.videoWidth * k; c.height = v.videoHeight * k;
-    const x = c.getContext('2d', { willReadFrequently:true }); x.drawImage(v, 0, 0, c.width, c.height);
-    const im = x.getImageData(0, 0, c.width, c.height), hit = window.jsQR && jsQR(im.data, im.width, im.height, { inversionAttempts:'attemptBoth' });
-    if (hit && hit.data) handleCode(hit.data);
+  if (!busy && v.readyState >= 2 && v.videoWidth){
+    try{
+      let text = '';
+      if (qrDetector){
+        const found = await qrDetector.detect(v);
+        if (found.length) text = found[0].rawValue;
+      }
+      if (!text && window.jsQR){
+        const k = Math.min(1, 720 / v.videoWidth);
+        c.width = Math.round(v.videoWidth * k); c.height = Math.round(v.videoHeight * k);
+        const x = c.getContext('2d', { willReadFrequently:true }); x.drawImage(v, 0, 0, c.width, c.height);
+        const im = x.getImageData(0, 0, c.width, c.height);
+        const hit = jsQR(im.data, im.width, im.height, { inversionAttempts:'attemptBoth' });
+        if (hit && hit.data) text = hit.data;
+      }
+      if (text) handleCode(text);
+    }catch(e){ /* skip frame */ }
   }
   requestAnimationFrame(tick);
 }
@@ -455,11 +542,12 @@ document.addEventListener('visibilitychange', () => { if (document.hidden && cam
 /* === END: JS CAMERA + QR DECODE === */
 
 /* === START: JS HANDLE SCAN + RESULT FLASH === */
-function handleCode(code, manual){
+async function handleCode(code, manual){
   if (busy) return; const now = Date.now();
   if (!manual && code === lastCode && now - lastAt < 2500) return;
   busy = true; lastCode = code; lastAt = now;
-  showResult(doScan(code, manual));
+  try{ showResult(await doScan(code, manual)); }
+  catch(e){ busy = false; showResult({ result:'ERROR', message:String((e && e.message) || 'No connection to server').slice(0, 40) }); }
 }
 function showResult(r){
   const kind = { PRESENT:'g', LATE:'o', DUPLICATE:'b', ERROR:'r' }[r.result];
@@ -469,16 +557,29 @@ function showResult(r){
   haptic(kind === 'r' ? 'err' : 'ok'); beep(kind === 'r' ? 'err' : kind === 'o' ? 'late' : 'ok');
   renderFront();
   clearTimeout(flashTimer);
-  flashTimer = setTimeout(() => { flashing = false; busy = false; ring.setAttribute('stroke', 'rgba(232,204,122,.55)'); ring.setAttribute('stroke-width', '2.5'); renderFront(); }, RESULT_MS);
+  flashTimer = setTimeout(() => {
+    flashing = false; busy = false; ring.setAttribute('stroke', 'rgba(232,204,122,.55)'); ring.setAttribute('stroke-width', '2.5'); renderFront();
+    const s = curSession();
+    if (s && (kind === 'g' || kind === 'o' || kind === 'b')){
+      syncRosterFromServer(s).then(counts => {
+        if (counts) liveCounts = { sessionId:s.id, counts };
+        renderFront();
+        if ($('overlay').classList.contains('show')){
+          if (currentSheetView === 'report') renderReportSheet(s);
+          else if (currentSheetView === 'roster') openRoster();
+        }
+      }).catch(() => {});
+    }
+  }, RESULT_MS);
 }
 /* === END: JS HANDLE SCAN + RESULT FLASH === */
 
 /* === START: JS SHEET — ENTER ID === */
 function openManual(){
   haptic();
-  openSheet(`<h2>Enter player ID</h2><div class="sub">For a lost card or a phone that can't read the QR. Saved as a manual entry.</div>
-    <input class="input" id="manualId" placeholder="${PREFIX}0001" autocapitalize="characters" autocomplete="off">
-    <div class="stack"><button class="b-dark" onclick="submitManual()">Check in</button><button class="b-light" onclick="closeSheet()">Cancel</button></div>`);
+  openSheet(`<h2>Enter player ID</h2><div class="sub">Use the player's ID when their card is lost or the QR code can't be scanned.</div>
+    <input class="input" id="manualId" placeholder="e.g. ${PREFIX}0001" autocapitalize="characters" autocomplete="off">
+    <div class="stack"><button class="b-dark" onclick="submitManual()">Record attendance</button><button class="b-light" onclick="closeSheet()">Cancel</button></div>`);
   setTimeout(() => $('manualId') && $('manualId').focus(), 320);
 }
 function submitManual(){
@@ -491,9 +592,11 @@ function submitManual(){
 /* === START: JS SHEET — ROSTER === */
 let rFilter = 'All';
 const FILTERS = ['All','Present','Late','Unconfirmed','Absent','Excused'];
-function openRoster(){
-  haptic(); const s = curSession(); if (!s) return openSessions();
-  const r = rosterFor(s), c = countsOf(r);
+async function openRoster(){
+  haptic(); currentSheetView = 'roster'; const s = curSession(); if (!s) return openSessions();
+  try{ const counts = await syncRosterFromServer(s); if (counts) liveCounts = { sessionId:s.id, counts }; }
+  catch(e){ /* offline — local cache */ }
+  const r = rosterFor(s), c = liveCounts && liveCounts.sessionId === s.id ? liveCounts.counts : countsOf(r);
   const list = r.filter(p => rFilter === 'All' || p.status === rFilter);
   openSheet(`<h2>Roster</h2><div class="sub">${s.team} · ${c.present + c.late} of ${c.total} attended</div>
     <div class="filters">${FILTERS.map(f => `<button class="chip ${rFilter === f ? 'active' : ''}" onclick="rFilter='${f}';openRoster()">${f} ${f === 'All' ? c.total : c[f.toLowerCase()]}</button>`).join('')}</div>
@@ -511,7 +614,12 @@ function openResolve(pid){
     ${st !== 'Unconfirmed' ? `<button class="b-light" onclick="resolve('${pid}','Unconfirmed')">Reset to unconfirmed</button>` : ''}
     <button class="b-light" onclick="openRoster()">Back</button></div>`);
 }
-function resolve(pid, status){ setStatus(curSession().id, pid, status, 'Admin review', 0); haptic('ok'); renderFront(); openRoster(); }
+async function resolve(pid, status){
+  const s = curSession();
+  try{ await api('resolve', { sessionId:s.id, playerId:pid, status }); }
+  catch(e){ toast('Offline — saved on this phone only', 'error'); }
+  setStatus(s.id, pid, status, 'Admin review', 0); haptic('ok'); renderFront(); openRoster();
+}
 /* === END: JS SHEET — ROSTER === */
 
 /* === START: JS SHEET — REPORT === */
@@ -523,26 +631,44 @@ function reportText(s, r, c){
     nm('Late').length ? 'Late: ' + nm('Late').join(', ') : '', nm('Unconfirmed').length ? 'Needs review: ' + nm('Unconfirmed').join(', ') : '',
     nm('Absent').length ? 'Absent: ' + nm('Absent').join(', ') : ''].filter(Boolean).join('\n');
 }
-function openReport(){
-  haptic(); const s = curSession(); if (!s) return openSessions();
-  const r = rosterFor(s), c = countsOf(r), att = c.present + c.late, pct = c.total ? Math.round(att / c.total * 100) : 0;
-  const nm = st => r.filter(p => p.status === st).map(p => esc(p.name)), closed = s.status === 'Closed';
-  const list = (t, a) => a.length ? `<div class="lbl">${t} (${a.length})</div><div class="group"><div class="names">${a.join(', ')}</div></div>` : '';
-  openSheet(`<h2>Training report</h2><div class="sub">${s.team} · ${fmt12(s.start)} · ${closed ? 'Finished' : 'In progress'}</div>
-    <div class="hero"><b>${att}<small> / ${c.total}</small></b><p>${pct}% attendance${s.coach ? ' · ' + esc(s.coach) : ''}</p><div class="bar"><i style="width:${pct}%"></i></div></div>
+async function openReport(){
+  haptic(); currentSheetView = 'report'; const s = curSession(); if (!s) return openSessions();
+  try{ const counts = await syncRosterFromServer(s); if (counts) liveCounts = { sessionId:s.id, counts }; }
+  catch(e){ /* offline — local cache */ }
+  renderReportSheet(s);
+}
+function renderReportSheet(s){
+  const r = rosterFor(s), c = liveCounts && liveCounts.sessionId === s.id ? liveCounts.counts : countsOf(r), att = c.present + c.late, pct = c.total ? Math.round(att / c.total * 100) : 0;
+  const started = att > 0 || c.absent > 0 || c.excused > 0;
+  const nm = st => r.filter(p => p.status === st), closed = s.status === 'Closed';
+  const rows = list => list.length ? `<div class="group">${list.map(p => `<div class="plist-row">${esc(p.name)}</div>`).join('')}</div>` : '';
+  openSheet(`<h2>Training report</h2>
+    <div class="rep-team">${esc(s.team)}</div>
+    <div class="rep-meta">${s.date === todayStr() ? 'Today' : s.date} · ${fmt12(s.start)}</div>
+    <span class="rep-badge ${closed ? 'finished' : 'progress'}">${closed ? 'Finished' : 'In progress'}</span>
+    <div class="hero ${started ? '' : 'unstarted'}"><b>${att}<small> / ${c.total}</small></b><p>${started ? pct + '% attendance' : 'No scans yet'}</p><div class="bar"><i style="width:${pct}%"></i></div></div>
+    ${s.coach ? `<div class="rep-coach">${esc(s.coach)}${s.location ? ' · ' + esc(s.location) : ''}</div>` : ''}
     <div class="group"><div class="kv"><span>Present</span><span style="color:var(--green-d)">${c.present}</span></div><div class="kv"><span>Late</span><span style="color:var(--orange-d)">${c.late}</span></div>
     <div class="kv"><span>Unconfirmed</span><span>${c.unconfirmed}</span></div><div class="kv"><span>Absent</span><span style="color:var(--red-d)">${c.absent}</span></div><div class="kv"><span>Excused</span><span>${c.excused}</span></div></div>
-    ${list('Late', nm('Late'))}${list('Needs review', nm('Unconfirmed'))}${list('Absent', nm('Absent'))}
-    <div class="stack">${closed ? '<button class="b-dark" onclick="setSessionStatus(\'Open\')">Reopen session</button>' : '<button class="b-dark" onclick="confirmFinish()">Finish session</button>'}
-    <button class="b-light" onclick="copyReport()">Copy report</button><button class="b-light" onclick="exportCsv()">Export attendance CSV</button></div>`);
+    ${c.unconfirmed ? `<div class="rep-section-lbl"><span>Needs review</span><span>${c.unconfirmed}</span></div>${rows(nm('Unconfirmed'))}` : ''}
+    ${c.late ? `<div class="rep-section-lbl"><span>Late</span><span>${c.late}</span></div>${rows(nm('Late'))}` : ''}
+    ${c.absent ? `<div class="rep-section-lbl"><span>Absent</span><span>${c.absent}</span></div>${rows(nm('Absent'))}` : ''}
+    <div class="stack">${closed ? '<button class="b-dark" onclick="setSessionStatus(\'Open\')">Reopen session</button>' : '<button class="b-gold" onclick="confirmFinish()">Finish session</button>'}</div>
+    <div class="lbl">Report</div>
+    <div class="stack"><button class="b-light" onclick="copyReport()">Copy report</button><button class="b-light" onclick="exportCsv()">Export attendance CSV</button></div>`);
 }
 function copyReport(){ const s = curSession(), r = rosterFor(s); copy(reportText(s, r, countsOf(r))); }
 function confirmFinish(){
-  const c = countsOf(rosterFor(curSession())), u = c.unconfirmed;
+  const s = curSession();
+  const c = liveCounts && liveCounts.sessionId === s.id ? liveCounts.counts : countsOf(rosterFor(s)), u = c.unconfirmed;
   openSheet(`<h2>Finish this session?</h2><div class="sub">${u ? u + ' player' + (u > 1 ? 's have' : ' has') + ' no scan. They stay Unconfirmed so you can review them later.' : 'Everyone is accounted for.'}</div>
     <div class="stack"><button class="b-dark" onclick="setSessionStatus('Closed')">Finish session</button><button class="b-light" onclick="openReport()">Keep scanning</button></div>`);
 }
-function setSessionStatus(st){ curSession().status = st; save(); haptic('ok'); renderFront(); toast(st === 'Closed' ? 'Session finished' : 'Session reopened', 'success'); openReport(); }
+async function setSessionStatus(st){
+  const s = curSession();
+  if (st === 'Closed'){ try{ await api('finish', { sessionId:s.id }); }catch(e){ toast('Offline — saved on this phone only', 'error'); } }
+  s.status = st; save(); haptic('ok'); renderFront(); toast(st === 'Closed' ? 'Session finished' : 'Session reopened', 'success'); openReport();
+}
 function exportCsv(){
   const s = curSession(), q = v => '"' + String(v == null ? '' : v).replace(/"/g, '""') + '"';
   const rows = [['Session','Date','Team','Player ID','Name','Status','Time','Minutes late','Source']];
@@ -557,16 +683,18 @@ function openSessions(){
   haptic();
   const list = [...DB.sessions].sort((a,b) => (b.date + b.start).localeCompare(a.date + a.start)).slice(0, 8);
   const teams = teamsList();
-  openSheet(`<h2>Sessions</h2><div class="sub">Pick the session you're scanning for. Weekly schedules create it automatically.</div>
-    <div class="group">${list.map(s => `<div class="row tap" onclick="pickSession('${s.id}')"><div class="av" style="background:${colorFor(s.team)};font-size:11px">${esc(s.team)}</div>
-      <div class="rt"><b>${esc(s.team)} · ${fmt12(s.start)}</b><span>${s.date === todayStr() ? 'Today' : s.date}${s.location ? ' · ' + esc(s.location) : ''}</span></div>
+  openSheet(`<h2>Sessions</h2><div class="sub">Pick the session you're scanning for.</div>
+    <div class="group">${list.map(s => `<div class="row tap ${s.id === DB.currentSessionId ? 'current' : ''}" onclick="pickSession('${s.id}')"><div class="av" style="background:${colorFor(s.team)};font-size:11px">${esc(s.team)}</div>
+      <div class="rt"><b>${esc(s.team)}${s.id === DB.currentSessionId ? ' <span class="cur-badge">SCANNING</span>' : ''}</b><span>${s.date === todayStr() ? 'Today' : s.date} · ${fmt12(s.start)}</span>${s.location ? `<span class="rt-loc">${esc(s.location)}</span>` : ''}</div>
       <span class="tag ${s.status.toLowerCase()}">${s.status}</span></div>`).join('') || '<div class="empty">No sessions yet.</div>'}</div>
     <div class="lbl">New session</div>
+    <div class="sub" style="margin:-4px 2px 10px">Fill in the details, then tap Start session to make it active.</div>
     <datalist id="teams">${teams.map(t => `<option value="${esc(t)}">`).join('')}</datalist>
     <div class="grid2"><input class="input" id="nsTeam" list="teams" placeholder="Team (U14)" value="${esc(teams[0] || '')}"><input class="input" id="nsStart" type="time" value="${hhmm()}"></div>
     <div class="grid2" style="margin-top:8px"><input class="input" id="nsCoach" placeholder="Coach"><input class="input" id="nsLoc" placeholder="Location"></div>
     <div class="grid2" style="margin-top:8px"><input class="input" id="nsGrace" type="number" inputmode="numeric" value="10" placeholder="Grace (min)"><button class="b-gold" onclick="createSession()">Start session</button></div>
-    <div class="lbl">Weekly schedule (auto-creates sessions)</div>
+    <div class="lbl">Weekly schedule</div>
+    <div class="sub" style="margin:-4px 2px 10px">Automatically creates a session here on its scheduled day.</div>
     <div class="group">${DB.schedules.length ? DB.schedules.map((x,i) => `<div class="row"><div class="rt"><b>${esc(x.team)} · ${x.day}</b><span>${fmt12(x.start)} · grace ${x.grace} min</span></div>
       <button class="tag absent" onclick="delSchedule(${i})">Remove</button></div>`).join('') : '<div class="empty">No weekly schedule yet.</div>'}</div>
     <div class="grid2" style="margin-top:8px"><input class="input" id="scTeam" list="teams" placeholder="Team"><select class="input" id="scDay">${DAYS.map((d,i) => `<option ${i === new Date().getDay() ? 'selected' : ''}>${d}</option>`).join('')}</select></div>
@@ -587,18 +715,31 @@ function delSchedule(i){ DB.schedules.splice(i, 1); save(); openSessions(); }
 /* === END: JS SHEET — SESSIONS + WEEKLY SCHEDULE === */
 
 /* === START: JS SHEET — CARDS (players + QR) === */
-function openCards(){
-  haptic(); const q = ($('cardSearch') || {}).value || '';
+async function syncPlayers(){
+  try{
+    const r = await api('players', {});
+    r.players.forEach(sp => {
+      let local = DB.players.find(x => x.id === sp.playerId);
+      const tok = sp.code.split('.')[1];
+      if (!local){ local = { id:sp.playerId, active:true }; DB.players.push(local); }
+      Object.assign(local, { name:sp.name, team:sp.team, position:sp.position, token:tok, active:true });
+    });
+    save();
+  }catch(e){ /* offline — local cache lang gagamitin */ }
+}
+async function openCards(){
+  haptic(); await syncPlayers(); const q = ($('cardSearch') || {}).value || '';
   const list = DB.players.filter(p => p.active && (!q || (p.name + p.id + p.team).toLowerCase().includes(q.toLowerCase())));
-  openSheet(`<h2>Player cards</h2><div class="sub">${DB.players.filter(p => p.active).length} players. Each QR holds only a private token, never personal info.</div>
+  openSheet(`<h2>Player cards</h2><div class="sub">${DB.players.filter(p => p.active).length} players</div>
+    <div class="security-note">Each QR contains a private token only — no personal information.</div>
     <div class="grid2"><button class="b-gold" onclick="openAddPlayers()">Add players</button><button class="b-light" onclick="printAllCards()">Print all cards</button></div>
     <input class="input" id="cardSearch" placeholder="Search name, ID or team" style="margin:12px 0" oninput="filterCards()" value="${esc(q)}">
     <div class="group" id="cardList">${cardRows(list)}</div>
-    ${DB.players.some(p => p.demo) ? '<div class="stack"><button class="b-light b-danger" onclick="clearDemo()">Remove demo players</button></div>' : ''}`);
+    ${DB.players.some(p => p.demo) ? '<div class="lbl">Demo data</div><div class="stack"><button class="b-light b-danger" onclick="clearDemo()">Remove demo players</button></div>' : ''}`);
 }
 function cardRows(list){
   return list.length ? list.map(p => `<div class="row tap" onclick="openCard('${p.id}')"><div class="av" style="background:${colorFor(p.name)}">${initials(p.name)}</div>
-    <div class="rt"><b>${esc(p.name)}</b><span>${p.id} · ${esc(p.team)}</span></div>
+    <div class="rt"><b>${esc(p.name)}</b><span><span class="rt-id">${p.id}</span> · ${esc(p.team)}</span></div>
     <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="rgba(60,60,67,.3)" stroke-width="2.2"><polyline points="9 18 15 12 9 6"/></svg></div>`).join('') : '<div class="empty">No players found.</div>';
 }
 function filterCards(){
@@ -615,7 +756,14 @@ function openCard(pid){
   drawQRs($('oneCard'));
 }
 function testScan(pid){ const p = DB.players.find(x => x.id === pid); busy = false; handleCode(p.id + '.' + p.token, false); }
-function reissue(pid){ if (!confirm('Revoke the old QR? The old card stops working.')) return; DB.players.find(x => x.id === pid).token = newToken(); save(); haptic('ok'); openCard(pid); toast('New QR ready to print', 'success'); }
+async function reissue(pid){
+  if (!confirm('Revoke the old QR? The old card stops working.')) return;
+  try{
+    const r = await api('reissue', { playerId:pid });
+    DB.players.find(x => x.id === pid).token = r.code.split('.')[1];
+  }catch(e){ DB.players.find(x => x.id === pid).token = newToken(); toast('Offline — new QR saved on this phone only', 'error'); }
+  save(); haptic('ok'); openCard(pid); toast('New QR ready to print', 'success');
+}
 function removePlayer(pid){ if (!confirm('Remove this player from the roster? Past attendance is kept.')) return; DB.players.find(x => x.id === pid).active = false; save(); renderFront(); openCards(); }
 function clearDemo(){ if (!confirm('Remove all demo players?')) return; DB.players.forEach(p => { if (p.demo) p.active = false; }); save(); renderFront(); openCards(); }
 function printOne(pid){
@@ -628,20 +776,36 @@ function printAllCards(){
 }
 function openAddPlayers(){
   const teams = teamsList();
-  openSheet(`<h2>Add players</h2><div class="sub">One per line: <b>Name, Team, Position</b>. Team and position are optional if you fill the default below. IDs and QR tokens are created automatically.</div>
-    <textarea class="input" id="apText" placeholder="Juan Dela Cruz, U14, Midfielder&#10;Pedro Santos, U14, Defender&#10;Ana Reyes, U12"></textarea>
+  openSheet(`<h2>Add players</h2><div class="sub">One per line: <b>Name, Team, Position, Email</b>. Team, position and email are optional. IDs and QR tokens are created automatically. If an email is given, a welcome email is sent automatically.</div>
+    <textarea class="input" id="apText" placeholder="Juan Dela Cruz, U14, Midfielder, juan@email.com&#10;Pedro Santos, U14, Defender&#10;Ana Reyes, U12"></textarea>
     <datalist id="teams">${teams.map(t => `<option value="${esc(t)}">`).join('')}</datalist>
     <input class="input" id="apTeam" list="teams" placeholder="Default team (used when a line has none)" style="margin-top:8px">
-    <div class="stack"><button class="b-dark" onclick="addPlayers()">Create players + QR</button><button class="b-light" onclick="openCards()">Cancel</button></div>`);
+    <div class="stack"><button class="b-dark" id="apSubmit" onclick="addPlayers()">Create players + QR</button><button class="b-light" onclick="openCards()">Cancel</button></div>`);
 }
-function addPlayers(){
-  const dt = $('apTeam').value.trim(); let n = 0;
-  $('apText').value.split(/\n/).forEach(line => {
-    const [name, team, pos] = line.split(/[,;\t]/).map(x => x.trim()); if (!name) return;
-    if (!(team || dt)){ return; } addPlayerTo(DB, name, team || dt, pos, false); n++;
-  });
-  if (!n) return toast('Add at least one line with a team', 'error');
-  save(); haptic('ok'); renderFront(); openCards(); toast(n + ' player' + (n > 1 ? 's' : '') + ' added', 'success');
+async function addPlayers(){
+  const dt = $('apTeam').value.trim();
+  const lines = $('apText').value.split(/\n/).map(l => l.trim()).filter(Boolean);
+  if (!lines.length) return toast('Add at least one line', 'error');
+  const btn = $('apSubmit'); if (btn){ btn.disabled = true; btn.textContent = 'Creating…'; }
+  let n = 0, emailed = 0, failed = 0;
+  for (const line of lines){
+    const [name, team, pos, email] = line.split(/[,;\t]/).map(x => (x || '').trim());
+    if (!name || !(team || dt)) continue;
+    try{
+      const r = await api('addPlayer', { name, team: team || dt, position: pos || '', email: email || '' });
+      DB.players.push({ id:r.playerId, name:r.name, team:r.team, position:r.position || 'Player', token:r.code.split('.')[1], active:true, demo:false });
+      n++;
+      if (r.emailStatus === 'SENT') emailed++; else if (r.emailStatus === 'FAILED') failed++;
+    }catch(e){ /* skip line, continue with the rest */ }
+  }
+  save();
+  if (btn){ btn.disabled = false; btn.textContent = 'Create players + QR'; }
+  if (!n) return toast('Could not add players — check your connection', 'error');
+  haptic('ok'); renderFront(); openCards();
+  let msg = n + ' player' + (n > 1 ? 's' : '') + ' added';
+  if (emailed) msg += ', ' + emailed + ' welcome email' + (emailed > 1 ? 's' : '') + ' sent';
+  if (failed) msg += ' (' + failed + ' email failed)';
+  toast(msg, 'success');
 }
 /* === END: JS SHEET — CARDS === */
 
@@ -667,3 +831,4 @@ initArt(); ensureToday(); fitStage(); renderFront();
 </script>
 </body>
 </html>
+
